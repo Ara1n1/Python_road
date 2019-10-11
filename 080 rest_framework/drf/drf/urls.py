@@ -20,4 +20,5 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^test$', views.Test.as_view()),
     url(r'^api/v1/auth/$', views.AuthView.as_view()),
+    url(r'^api/v1/order/$', views.OrderView.as_view()),
 ]

@@ -1,4 +1,4 @@
-### 开发模式
+# 开发模式
 
 #### 1. 普通开发模式
 
@@ -110,7 +110,7 @@ class APIView(View):
         request.user
 ```
 
-### 3. 示例
+### 3. 登录
 
 ```python
 from rest_framework.views import APIView
@@ -129,7 +129,6 @@ class AuthView(APIView):
         user = request._request.POST.get('username')
         pwd = request._request.POST.get('password')
         obj = models.UserInfo.objects.filter(username=user, password=pwd)
-
         if not obj:
             ret['code'] = 1001
             ret['msg'] = '用户名或密码错误'
@@ -138,14 +137,169 @@ class AuthView(APIView):
             token = md5(user)
             # token 存在更新，不存在更新
             user_id = obj.first().id
-            models.UserToken.objects.update_or_create(user_id=user_id, defaults={"token": token})
+models.UserToken.objects.update_or_create(user_id=user_id, defaults={"token": token})
             ret['token'] = token
         return JsonResponse(ret)
 ```
 
+### 4. 认证访问
+
+1.  `request.user `和` request.auth `**分别是验证类执行方法时返回的元组**
+2.  如果验证类，没有返回值则交由下一个验证类进行处理，如果**都没有返回值**，则使用默认值：即**AnonymousUser**
+3.  如果是异常则抛：`raise exceptions.AuthenticationFailed(ret)`
+4.  **认证一般不加多个**
+
+```python
+data = {
+    1: {'name': 'henry'},
+    2: {'name': 'echo'},
+}
+class MyAuth:
+	
+    def authenticate(self, request):
+        ret = {'code': 1000, 'msg': None, 'data': None}
+        token = request.GET.get('token')
+        models.UserToken.objects.filter(token=token).first()
+        if not token:
+            ret['code'] = 1001
+            ret['msg'] = '用户没有登录'
+            raise exceptions.AuthenticationFailed(ret)
+        # restful framework 内部会赋值给requst，供以后使用
+        return token.user, token
+    # 认证失败时，返回给浏览器的响应头
+    def authenticate_header(self, request):
+        pass
+
+class OrderView(APIView):
+    # 需要认证的加上即可
+    authentication_classes = [MyAuth, ]
+    
+    def get(self, request):
+
+        ret = {'code': 1000, 'msg': None, 'data': None}
+        try:
+            ret['data'] = data
+        except exceptions as e:
+            pass
+        return JsonResponse(ret)
+```
+
+### 5. 认证的执行流程
+
+```python
+# apiview
+1. 执行dispatch()
+2. 执行 self.initialize_request(request, *args, **kwargs)
+3. 执行 self.initial(request, *args, **kwargs)
+4. 执行 initial 中的 self.perform_authentication(request)
+5. 即：request.user
+6.  @property
+    def user(self):
+        ...
+        self._authenticate()
+7. 执行 _authenticate(self)，循环 self.authenticators 对象，执行 authenticate 的方法
+8. 执行自定义类中的 authenticate 的方法
+9. 执行视图函数
+```
+
+### 6. 匿名用户配置
+
+-   推荐`UNAUTHENTICATED_USER`:为None，token也为 None
+-   DEFAULT_AUTHENTICATION_CLASSES：自定义**默认验证的类**，全局使用
+-   如果要某个类免除认证，**则添加`authentication_classes = []`即可**
+-   **配置全局有效**
+
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
+    'UNAUTHENTICATED_USER': lambda: '匿名用户',
+    'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
+}
+```
+
+### 7. 内置的认证类
+
+#### 1. 内置类的用法
+
+-   为了规范认证类的写法，**通常我们都继承 BaseAuthentication** 类
+-   **必须实现类中的两个方法**
+
+```python
+from rest_framework.authentication import BaseAuthentication
+
+# 自定义的认证类
+class MyAuth(BaseAuthentication):
+    def authenticate(self, request):
+        ret = {'code': 1000, 'msg': None, 'data': None}
+        token = request.GET.get('token')
+        models.UserToken.objects.filter(token=token).first()
+        if not token:
+            ret['code'] = 1001
+            ret['msg'] = '用户没有登录'
+            raise exceptions.AuthenticationFailed(ret)
+        # restful framework 内部会赋值给requst，供以后使用
+        return token.user, token
+    # 认证失败时，返回给浏览器的响应头
+    def authenticate_header(self, request):
+        pass
+```
+
+#### 2. BasicAuthentication
+
+-   跳出的用户名和密码如：FTP，**浏览器提供的功能**
+-   用户名和密码放在请求头中，**会加密**
+-   一种公认的认证方式
+
 ## 2. 权限
 
-  
+### 1. 基本使用
+
+```python
+class MyPermission():
+    # 没有权限的提示信息
+    message = 'xxxx'
+    def has_permission(self, request, view):
+        # 返回 True 则有权访问
+        return False
+          
+class OrderView(APIView):
+    # 需要认证的加上即可
+    authentication_classes = [MyAuth, ]
+    # 返回 True 有权访问
+    permission_classes = [MyPermission,]
+    def get(self, request):
+		pass
+```
+
+### 2. 配置文件
+
+```python
+REST_FRAMEWORK = {
+    # 认证相关
+    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
+    'UNAUTHENTICATED_USER': lambda: '匿名用户',
+    'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
+    # 权限相关
+    'DEFAULT_PERMISSION_CLASSES': ['app01.utils.Permissions.MyPermission']
+}
+```
+
+### 3. 内置权限类
+
+-   为了规范认证类的写法，**通常我们都继承 BasePermission** 类
+-   返回True表示有权访问，False 表示无权访问，可以抛异常
+
+```python
+from rest_framework.permissions import BasePermission
+
+# 自定义的权限类
+class MyPermission(BasePermission):
+    # 没有权限的提示信息
+    message = 'xxxx'
+    def has_permission(self, request, view):
+        # 返回 True 则有权访问
+        return False
+```
 
 ## 3. 节流(访问频率)
 
