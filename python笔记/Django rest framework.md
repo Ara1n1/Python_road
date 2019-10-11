@@ -66,15 +66,16 @@ class Test(APIView):
 
 ### 2. 代码的流程
 
-#### 1. 流程
+#### 1. dispatch执行流程
 
-```python
-1. 执行 APIView 的 dispatch 方法
-	- 此时的 request 封装了原生的 requst 和 authenticators
-    - request 本质是 Request 对象
-	-  authenticators=self.get_authenticators()
-    
-```
+1.  `request = self.initialize_request(request, *args, **kwargs)`
+    -   此时的 request 封装了原生的 **requst** 和 **authenticators**
+    -   request 本质是 Request 对象
+    -   authenticators=self.get_authenticators()
+2.  `self.initial(request, *args, **kwargs)`
+    -   Runs anything that needs to occur prior to calling the method handler.
+    -   实现：**认证、权限、节流、版本**等功能
+    -   如：`self.perform_authentication(request)`
 
 #### 2. 源码解读
 
@@ -104,33 +105,43 @@ class APIView(View):
     
     def get_authenticators(self):
         return [auth() for auth in self.authentication_classes]
+    # self.initial(request, *args, **kwargs)中调用
+    def perform_authentication(self, request):
+        request.user
 ```
 
 ### 3. 示例
-
-
 
 ```python
 from rest_framework.views import APIView
 from django.http import JsonResponse
 
+def md5(user):
+    import hashlib, time
+    m = hashlib.md5(bytes(user, encoding='utf8'))
+    m.update(bytes(str(time.time()), encoding='utf8'))
+    return m.hexdigest()
+
 class AuthView(APIView):
-    
+
     def post(self, request):
-        
         ret = {'code': 1000, 'msg': None}
         user = request._request.POST.get('username')
         pwd = request._request.POST.get('password')
-        obj = models.UserInfo.objects.filter(username=user, password = pwd)
+        obj = models.UserInfo.objects.filter(username=user, password=pwd)
+
         if not obj:
             ret['code'] = 1001
             ret['msg'] = '用户名或密码错误'
-        # 为登录用户创建 token
-        
-
+        else:
+            # 为登录用户创建 token
+            token = md5(user)
+            # token 存在更新，不存在更新
+            user_id = obj.first().id
+            models.UserToken.objects.update_or_create(user_id=user_id, defaults={"token": token})
+            ret['token'] = token
+        return JsonResponse(ret)
 ```
-
-
 
 ## 2. 权限
 

@@ -54,12 +54,15 @@ class AuthView(APIView):
         user = request._request.POST.get('username')
         pwd = request._request.POST.get('password')
         obj = models.UserInfo.objects.filter(username=user, password=pwd)
+
         if not obj:
             ret['code'] = 1001
             ret['msg'] = '用户名或密码错误'
-        # 为登录用户创建 token
-        token = md5(user)
-        # token 存在更新，不存在更新
-        models.UserToken.objects.update_or_create(user=user, defaults={"token": token})
-        ret['token'] = token
+        else:
+            # 为登录用户创建 token
+            token = md5(user)
+            # token 存在更新，不存在更新
+            user_id = obj.first().id
+            models.UserToken.objects.update_or_create(user_id=user_id, defaults={"token": token})
+            ret['token'] = token
         return JsonResponse(ret)

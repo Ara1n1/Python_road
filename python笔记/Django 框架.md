@@ -4625,7 +4625,6 @@ class Md2(MiddlewareMixin):
 from django.http import HttpResponse
 from django.utils.deprecation import MiddlewareMixin
 
-
 class Md1(MiddlewareMixin):
     def process_template_response(self, request, response):
         print("here's process_template_response of Md1")
