@@ -303,7 +303,118 @@ class MyPermission(BasePermission):
 
 ## 3. 节流(访问频率)
 
+### 1. 访问频率限制
 
+#### 1. 不继承BaseThrottle
+
+```python
+import time
+
+class MyThrottle(object):
+    VISIT_HIS = {}
+
+    def __init__(self):
+        self.history = None
+
+    def allow_request(self, request, view):
+        atime = time.time()
+        remote_addr = request.META.get('REMOTE_ADDR')
+        self.history = self.VISIT_HIS.get(remote_addr)
+        if not self.history:
+            self.VISIT_HIS[remote_addr] = [atime, ]
+            return True
+        while self.history and self.history[-1] < atime - 10:
+            self.history.pop()
+        if len(self.history) < 3:
+            self.history.insert(0, atime)
+            return True
+
+    def wait(self):
+        return 10 - time.time() + self.history[-1]
+```
+
+#### 2. 继承BaseThrottle
+
+```python
+import time
+from rest_framework.throttling import BaseThrottle
+class MyThrottle(BaseThrottle):
+    VISIT_HIS = {}
+
+    def __init__(self):
+        self.history = None
+
+    def allow_request(self, request, view):
+        atime = time.time()
+        remote_addr = self.get_ident(request)
+        self.history = self.VISIT_HIS.get(remote_addr)
+        if not self.history:
+            self.VISIT_HIS[remote_addr] = [atime, ]
+            return True
+        while self.history and self.history[-1] < atime - 10:
+            self.history.pop()
+        if len(self.history) < 3:
+            self.history.insert(0, atime)
+            return True
+
+    def wait(self):
+        return 10 - time.time() + self.history[-1]
+```
+
+#### 3. 继承SimpleRateThrottle
+
+```python
+from rest_framework.throttling import SimpleRateThrottle
+# 针对匿名用户，使用 ip 地址作为标识
+class MyThrottle(SimpleRateThrottle):
+    scope = 'any string'
+
+    def get_cache_key(self, request, view):
+        return self.get_ident(request)
+
+# 针对登录用户
+class UserThrottle(SimpleRateThrottle):
+    scope = 'user'
+
+    def get_cache_key(self, request, view):
+        return request.user.username
+```
+
+### 2. 配置文件
+
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'UNAUTHENTICATED_USER': None,
+    'UNAUTHENTICATED_TOKEN': None,
+	# 权限
+    'DEFAULT_PERMISSION_CLASSES': ['app01.utils.Permissions.MyPermission'],
+    # 节流
+    'DEFAULT_THROTTLE_CLASSES': ['app01.utils.MyThrottle.UserThrottle'],
+	# 设置 scope
+    'DEFAULT_THROTTLE_RATES': {
+        'any string': '3/m',
+        'user':'10/m',
+    }
+}
+```
+
+### 3. 使用方式
+
+#### 1. 局部使用
+
+```python
+class 类():	
+    authentication_classes = [MyAuth,]
+    permission_classes = [MyPermission,]
+    throttle_classes = [MyThrottle, ]
+    def ...
+```
+
+#### 2. 全局使用
+
+-   使用配置文件
 
 ## 4. 版本
 
