@@ -826,8 +826,7 @@ __slots__ = ('__stroage__', '__ident_func__')
 ![7 LocalProxy](/Users/henry/Documents/截图/Py截图/Flask 请求上文/7 LocalProxy.png)
 
 -   当请求处理结束，返回 reponse 给客户端后，Flask通过 信号机制调用`flask.reqeust_tearing_down`和`flask.appcontext_tearing_down`等信号，把当前的request数据销毁，整个请求结束。
-
-
+    
 
 ## 6. Flask 全局变量
 
@@ -837,6 +836,25 @@ __slots__ = ('__stroage__', '__ident_func__')
 2.  `g`用于在应用上下文期间保存数据的变量
 3.  `request`封装了客户端的请求信息
 4.  `session`代表了用户会话信息。
+
+## 7. Flask中内置信号
+
+```python
+# 模板渲染成功的时候发送，这个信号与模板实例template上下文的字典一起调用。
+flask.template_rendered
+# 建立请求上下文后，在请求处理开始前发送，订阅者可以用request之类的标准代理访问请求。
+flask.request_started
+# 在响应发送给客户端之前发送，可以传递reponse。
+flask.request_finished
+# 在请求处理中抛出异常时发送，异常本身会通过execption传递到订阅函数。
+flask.got_request_exception
+# 在请求销毁时发送，它总是被调用，即使发生异常。
+flask.request_tearing_down
+# 在应用上下文销毁时发送，它总是被调用，即使发生异常。
+flask.appcontext_tearing_down
+```
+
+
 
 # 5.websocket
 

@@ -6,7 +6,6 @@ from rest_framework import exceptions
 from rest_framework.views import APIView
 
 from app01 import models
-from app01.utils.Permissions import MyPermission
 
 
 class MyAuthentication(object):
@@ -52,7 +51,7 @@ def md5(user):
 
 
 class AuthView(APIView):
-    authentication_classes = []
+    # authentication_classes = []
 
     def post(self, request):
         ret = {'code': 1000, 'msg': None}
@@ -91,6 +90,7 @@ data = {
 }
 
 """权限相关"""
+
 
 class OrderView(APIView):
     # permission_classes = [MyPermission, ]

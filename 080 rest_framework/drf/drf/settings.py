@@ -116,8 +116,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
-    # 'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
-    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
+    # 'DEFAULT_AUTHENTICATION_CLASSES': [],
     'UNAUTHENTICATED_USER': lambda: '匿名用户',
     'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
 
