@@ -4805,7 +4805,6 @@ MIDDLEWARE = [
     {# 缓存 #}
     {{ now }}
 {% endcache %}
-
 ```
 
 ### 3. 缓存使用redis
@@ -4924,7 +4923,6 @@ def callback(sender, **kwargs):
 
 ```python
 from sg import pizza_done
- 
 pizza_done.send(sender='echo', toppings=123, size=456)
 ```
 
