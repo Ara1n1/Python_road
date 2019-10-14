@@ -11,7 +11,7 @@ def fib(n):
 
 if __name__ == '__main__':
     t1 = time.time()
-    sum = fib(40)
+    sum = fib(45)
     print("sum=", sum)
     t2 = time.time()
     print(t2, t1)
