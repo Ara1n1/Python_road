@@ -36,8 +36,11 @@
 #
 # print(iter(li).__next__())
 
+# ret = filter(lambda n: n % 3 == 0, range(10))
+# print(list(ret))
+# print(list(ret))
 
-class Test:
 
-    def __new__(cls, *args, **kwargs):
-        pass
+v = [1]
+v.append(v)
+print(len(v))

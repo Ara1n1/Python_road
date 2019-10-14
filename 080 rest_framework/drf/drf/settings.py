@@ -47,7 +47,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 ROOT_URLCONF = 'drf.urls'
 
 TEMPLATES = [
@@ -128,3 +127,6 @@ REST_FRAMEWORK = {
         'any string': '3/m',
     }
 }
+
+from django.conf import global_settings
+from django.middleware.csrf import CsrfViewMiddleware

@@ -8,12 +8,12 @@
 2.  redis是内存型数据库
 3.  selenium操作浏览器时，需要注意浏览器资源释放，防止内存泄漏
 4.  redis持久化：防止数据丢失，以文件形式存储
-5.  Redis是vmware开发的开源免费的KV型NoSQL缓存产品
+5.  Redis是vmware开发的开源免费的**KV型NoSQL缓存产品**
 
 ### redis特性
 
 1.  Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件
-2.  redis是c语言编写的，支持数据持久化，是key-value类型数据库。
+2.  **redis是c语言编写的**，支持数据持久化，是key-value类型数据库。
 3.  应用在缓存，队列系统中
 4.  redis支持数据备份，也就是master-slave模式
 
@@ -157,7 +157,7 @@ flushdb							# 清除redis的所有key
 flushall						# 清空所有数据库的所有 key
 ```
 
-### 2. 数据类型
+### 2. 数据类型(5)
 
 -   redis是一种高级的key：value存储系统，其中value支持五种数据类型
     1.  字符串（strings）

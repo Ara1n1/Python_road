@@ -1638,6 +1638,8 @@ name = csrfmiddlewaretoken {# 64位 #}
 ```python
 # 与自定义filter在同一文件中
 from django import template
+register = template.Library()
+
 @register.simple_tag(name='xxx')
 def join_str(*args, **kwargs):
 	return '{}--{}'.format('*'.join(args), '+'.join(kwargs.values()))
@@ -1653,7 +1655,7 @@ def join_str(*args, **kwargs):
 ```
 
 - **和filter的区别**
-  1. simpletag是标签，参数不受限制，使用{%%}
+  1. simpletag是标签，参数不受限制，使用{% %}
   2. filter是过滤器，参数最多有两个。使用{{ }}
   3. 装饰器不同
   4. 返回值不同
@@ -1704,7 +1706,7 @@ def page(num):
 
 -   filter、simple_tag、inclusion_tag
 
-#### 1. 在已注册的App下建立templatetags的pyhton 包
+#### 1. 在已注册的App下建立templatetags的 pyhton 包
 
 #### 2. 在包中，创建my_tag.py文件
 
@@ -3662,7 +3664,7 @@ class Login(View):
    1. 查询视图函数是否使用**csrf_exempt**装饰器，若使用则不用csrf校验
    2. 判断请求方式：
       - 如果是（GET，HEAD、OPTIONS，TRACE）**不进行校验**
-   3. 其他请求方式(POST,PUT)，进行csrf校验
+   3. 其他请求方式(**POST,PUT**)，进行csrf校验
       1. 获取cookies中的csrftoken值
       2. 获取post请求中的csrfmiddlewaretoken值
          - 能获取到赋值给—> **request_csrf_token**
@@ -4419,6 +4421,8 @@ error_messages = None   # 自定义错误信息
 - 每个中间件组件都负责做一些特定的功能。
 - **本质上是一个类。**
 - request对象是**wsgi**封装进行传递给django
+- wsgi：web服务网关接口，是应用程序和web服务之间的接口规范。
+- uwsgi：实现wsgi协议的一个模块，本质就是socket
 
 **五个方法**
 
@@ -4619,7 +4623,7 @@ class Md2(MiddlewareMixin):
 
 - **参数 ：self, request, response**
 
-#### 1. 示例
+### 1. 示例
 
 ```python
 # mymiddleware.py
@@ -4651,7 +4655,7 @@ def index(request):
     return TemplateResponse(request, 'index.html', {'name': 'herny', 'age': 19})
 ```
 
-#### 2. 特征
+### 2. 特征
 
 1. 触发条件：**视图返回一个templateResponse对象**，视图函数之后
 2. 参数：
@@ -4946,7 +4950,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 ```
 
 -   数据库迁移
@@ -4985,7 +4988,7 @@ obj.save()
 obj.save(using='default')
 ```
 
--   myroute.py
+-   **myroute.py**
     -   与manage.py同级
 
 ```python
@@ -4998,10 +5001,10 @@ class Router:
         return 'default'
 ```
 
--   Settings.py
+-   **Settings.py**
 
 ```python
-DATAVASE_ROUTER = ['myrouter.Router']
+DATABASE_ROUTER = ['myrouter.Router']
 ```
 
 ### 2. 一主多从
@@ -5015,7 +5018,6 @@ class Router:    
     
     def db_for_read(self, model, **kwargs):        
         return random.choices(['db2', 'db3'...])
-
 ```
 
 ### 3. 分库分表
@@ -5027,14 +5029,12 @@ class Router:
     app01 models db1
     app02 models db2
     """ 
-    
     def db_for_write(self, model, **kwargs):  
         app_name = model._meta.app_label
         if app_name = 'app01':
             db = 'db1'
         elif app_name = 'app02':
             db = 'db2'
-        
         return db
     
     def db_for_read(self, model, **kwargs):                
@@ -5043,9 +5043,7 @@ class Router:
             db = 'db1'
         elif app_name = 'app02':
             db = 'db2'
-        
         return db
-
 ```
 
 ### 4. django执行原生sql
