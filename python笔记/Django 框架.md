@@ -4669,6 +4669,34 @@ def index(request):
 
 ![dragon处理请求流程](/Users/henry/Documents/截图/Py截图/dragon处理请求流程.png)
 
+
+
+## 6. django中间件
+
+### 1. 作用
+
+	- 适用于所有请求的操作
+
+### 2. 使用场景
+
+1.  rbac权限控制
+
+2.  用户认证
+
+3.  csrf(原理：process_view中实现)
+
+4.  session
+
+    -   原理：process_request和process_response
+    -   view中对的sessiond的操作是在内存中的
+    -   在process_response中才写入数据库
+
+    
+
+
+
+
+
 # Django rest_framework
 
 -   APIView：自定义

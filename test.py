@@ -41,6 +41,33 @@
 # print(list(ret))
 
 
-v = [1]
-v.append(v)
-print(len(v))
+# v = [1]
+# v.append(v)
+# print(len(v))
+
+
+import time
+from multiprocessing import Process
+
+
+def son1():
+    while True:
+        print('is alive')
+        time.sleep(0.5)
+
+
+def son2():
+    for i in range(5):
+        print('in son2')
+        time.sleep(1)
+
+
+
+
+if __name__ == '__main__':
+    p = Process(target=son1)
+    p.daemon = True
+    p.start()
+    p2 = Process(target=son2)
+    p2.start()
+    time.sleep(2)

@@ -86,7 +86,7 @@ class APIView(View):
         self.request = request
         ...
         try:
-            self.initial(request, *args, **kwargs)
+            self.initial(request, *args, **kwargs)   # 执行 用户、权限、节流 功能
             # 此时的 request 是封装后的，.method 调用的是 __getattr__ 方法
             if request.method.lower() in self.http_method_names:
                 handler = getattr(self, request.method.lower(),self.http_method_not_allowed)
@@ -184,14 +184,13 @@ class OrderView(APIView):
 ```python
 # apiview
 1. 执行dispatch()
-2. 执行 self.initialize_request(request, *args, **kwargs)
+2. 执行 self.initialize_request(request, *args, **kwargs)，封装了所有的认证类
 3. 执行 self.initial(request, *args, **kwargs)
-4. 执行 initial 中的 self.perform_authentication(request)
-5. 即：request.user
-6.  @property
-    def user(self):
-        ...
-        self._authenticate()
+4. 执行 initial 中的 self.perform_authentication(request)执行request.user
+6. @property
+   def user(self):
+       ...
+       self._authenticate()
 7. 执行 _authenticate(self)，循环 self.authenticators 对象，执行 authenticate 的方法
 8. 执行自定义类中的 authenticate 的方法
 9. 执行视图函数
@@ -199,13 +198,14 @@ class OrderView(APIView):
 
 ### 6. 匿名用户配置
 
--   推荐`UNAUTHENTICATED_USER`:为None，token也为 None
+-   推荐`UNAUTHENTICATED_USER`：**为None，token也为 None**
 -   DEFAULT_AUTHENTICATION_CLASSES：自定义**默认验证的类**，全局使用
 -   如果要某个类免除认证，**则添加`authentication_classes = []`即可**
 -   **配置全局有效**
 
 ```python
 REST_FRAMEWORK = {
+    # 认证
     'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
     'UNAUTHENTICATED_USER': lambda: '匿名用户',
     'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
@@ -270,10 +270,6 @@ class OrderView(APIView):
 
 ```python
 REST_FRAMEWORK = {
-    # 认证相关
-    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
-    'UNAUTHENTICATED_USER': lambda: '匿名用户',
-    'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
     # 权限相关
     'DEFAULT_PERMISSION_CLASSES': ['app01.utils.Permissions.MyPermission']
 }
@@ -379,14 +375,14 @@ class UserThrottle(SimpleRateThrottle):
 
 ```python
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [],
+    # 认证
+    'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.Auth.MyAuth'],
     'UNAUTHENTICATED_USER': None,
     'UNAUTHENTICATED_TOKEN': None,
 	# 权限
     'DEFAULT_PERMISSION_CLASSES': ['app01.utils.Permissions.MyPermission'],
     # 节流
-    'DEFAULT_THROTTLE_CLASSES': ['app01.utils.MyThrottle.UserThrottle'],
+    'DEFAULT_THROTTLE_CLASSES': ['app01.utils.Throttle.UserThrottle'],
 	# 设置 scope
     'DEFAULT_THROTTLE_RATES': {
         'any string': '3/m',
@@ -413,9 +409,228 @@ class 类():
 
 ## 4. 版本*
 
+### 1. 版本
+
+-   restful规定放置于：url 或者 请求头中
+
+### 2. 版本获取
+
+-   版本号在**URL**中：`http://127.0.0.1:8000/api/users/?version=v1`
+
+#### 1. 自定义获取版本号
+
+```python
+class ParamVersion:
+    def determine_version(self, request, *args, **kwargs):
+        # reqeust.query_params.get('version')等价于 request._request.GET.get('version')
+        version = request.query_params.get('version')
+        return version
+
+class UserView(APIView):
+    versioning_class = ParamVersion
+
+    def get(self, request, *args, **kwargs):
+        print(request.version)
+        return HttpResponse('用户列表')
+```
+
+#### 2. 使用内置的类
+
+-   通过 versioning_class **表示局部使用**
+-   一般通过配置文件进行全局配置，只要配置一份即可
+
+```python
+from rest_framework.versioning import QueryParameterVersioning, URLPathVersioning
+class UserView(APIView):
+    # 版本：http://127.0.0.1:8000/api/users/?version=1
+    # versioning_class = QueryParameterVersioning
+    
+    # 版本：http://127.0.0.1:8000/api/v1/users/
+    # versioning_class = URLPathVersioning
+     
+    # 通过类获取 版本
+    print(request.version)
+    # url 方向解析
+    url = request.versioning_scheme.reverse(viewname='user', request=request)
+    print(url, 'here')
+    # 使用django 的url 反向解析
+    user_url = reverse(viewname='user', kwargs={'version': 'v2'})
+    print('user_url: ', user_url)
+    return HttpResponse('用户列表')
+```
+
+-   路由系统
+
+```python
+# 项目的 url
+from django.conf.urls import url, include
+from django.contrib import admin
+
+urlpatterns = [
+    # url(r'^admin/', admin.site.urls),
+    url(r'^api/', include('app01.urls')),
+]
+
+# app01
+from django.conf.urls import url
+from app01 import views
+urlpatterns = [
+    url(r'^(?P<version>[v1|v2]+)/users/$', views.UserView.as_view(), name='user'),
+]
+```
+
+-   配置文件
+
+```python
+REST_FRAMEWORK = {
+    # 设置获取版本的类，这里使用 URLPathVersioning
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1', 'v2'],
+    'VERSION_PARAM': 'version',
+}
+```
+
+### 3. 源码获取版本流程
+
+-   完整的 **intial** 方法
+
+```python
+class APIView(View):
+	def initial(self, request, *args, **kwargs):
+        """
+        Runs anything that needs to occur prior to calling the method handler.
+        """
+        self.format_kwarg = self.get_format_suffix(**kwargs)
+        # Perform content negotiation and store the accepted info on the request
+        neg = self.perform_content_negotiation(request)
+        request.accepted_renderer, request.accepted_media_type = neg
+
+        # Determine the API version, if versioning is in use.
+        version, scheme = self.determine_version(request, *args, **kwargs)
+        request.version, request.versioning_scheme = version, scheme
+
+        # Ensure that the incoming request is permitted
+        # 认证相关
+        self.perform_authentication(request)
+        # 权限相关
+        self.check_permissions(request)
+        # 节流相关
+        self.check_throttles(request)
+    
+    # 获取
+	def determine_version(self, request, *args, **kwargs):
+        if self.versioning_class is None:
+            return (None, None)
+        scheme = self.versioning_class()
+        # 执行version类中的 determine_version 方法，和 version类的对象
+        return (scheme.determine_version(request, *args, **kwargs), scheme)
+```
+
 ## 5. 解析器*
 
-## 6. 序列化器****
+### 1. django的request.POST和body
+
+#### 1. reqeust.POST有值的条件
+
+1.  如果请求头要求：`Content-Type:applicatoin/x-www-form-urlencode`，request.POST 才有值（request.body中解析数据）
+    -   form表单默认提交的数据请求头
+    -   ajax默认的请求头也符合这个要求
+2.  数据格式要求：`name=henry&pwd=123`
+
+#### 2. POST中没有值
+
+-   可以从body中获取
+
+```python
+# 此时 request.POST中没有值，但可以从 request.body 中获取
+$.ajax({
+    url:...,
+    type:'POST',
+    # 此时 request.POST中没有值
+    headers:{Content-Type:'applicatoin/json',},
+    # data 内部会转换为 name=henry&pwd=123 格式
+    data:{
+        name:'henry',
+        pwd:123,
+    }
+})
+```
+
+### 2. resful_framework解析器
+
+-   使用时全局配置
+-   使用：request.data 取值时会触发解析
+
+#### 1. 可以发json数据
+
+-   支持请求头：`content-type:'applicatoin/json'`
+-   支持数据：{'name': 'henry', 'pwd': 123}
+-   获取数据：`reu`
+
+```python
+from rest_framework.parsers import JSONParser
+
+class ParserView(APIView):
+    """
+    JSONParser 表示只能解析：Content-Type:applicatoin/json 的数据
+    FormParser 表示只能解析：Content-Type:applicatoin/x-www-form-urlencode 的数据
+    """
+    parser_classes = [JSONParser, FormParser]
+
+    def post(self, request, *args, **kwargs):
+        # 获取解析后的结果
+        print(request.POST)
+        # print(request.body)
+        print(request.data)
+        return HttpResponse('ParserView')
+```
+
+#### 2. 处理流程
+
+1.  获取用户请求
+2.  获取用户请求体
+3.  根据请求头和 解析器支持的请求头进行比较，然后解析
+4.  request.data
+
+#### 3. 配置文件
+
+-   settings.py
+
+```python
+REST_FRAMEWORK = {
+    # 设置获取版本的类，这里使用 URLPathVersioning
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1', 'v2'],
+    'VERSION_PARAM': 'version',
+    # 设置使用的解析器
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser', 
+        'rest_framework.parsers.FormParser'
+    ]
+}
+```
+
+### 3. 源码流程 
+
+-   本质：根据**content-type**头进行数据解析
+
+```python
+1. 执行 request.data
+	@property
+	def data(self):
+    	if not _hasattr(self, '_full_data'):
+            self._load_data_and_files()
+            return self._full_data
+2. 调用 _load_data_and_files() 方法，执行  self._parse()
+3. 执行选择 parser = self.negotiator.select_parser(self, self.parsers)，解析器
+4. 调用解析器类parser对象的 parse 方法
+	parsed = parser.parse(stream, media_type, self.parser_context)
+5. 返回解析好的数据
+```
+
+## 6. 序列化****
 
 ## 7. 分页**
 
