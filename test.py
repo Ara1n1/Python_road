@@ -32,7 +32,7 @@
 #
 #
 # li = [1, 2, 3]
-# print(li.__dir__())
+# print(li.__dir__())w
 #
 # print(iter(li).__next__())
 
@@ -46,28 +46,40 @@
 # print(len(v))
 
 
-import time
-from multiprocessing import Process
+# import time
+# from multiprocessing import Process
+#
+#
+# def son1():
+#     while True:
+#         print('is alive')
+#         time.sleep(0.5)
+#
+#
+# def son2():
+#     for i in range(5):
+#         print('in son2')
+#         time.sleep(1)
+#
+#
+#
+#
+# if __name__ == '__main__':
+#     p = Process(target=son1)
+#     p.daemon = True
+#     p.start()
+#     p2 = Process(target=son2)
+#     p2.start()
+#     time.sleep(2)
 
+#
+# f = open('a.txt', mode='a', encoding='utf8')
+# f.write('a')
+# f.close()
+import logging
 
-def son1():
-    while True:
-        print('is alive')
-        time.sleep(0.5)
-
-
-def son2():
-    for i in range(5):
-        print('in son2')
-        time.sleep(1)
-
-
-
-
-if __name__ == '__main__':
-    p = Process(target=son1)
-    p.daemon = True
-    p.start()
-    p2 = Process(target=son2)
-    p2.start()
-    time.sleep(2)
+logging.basicConfig(fielname='cmdb.log',
+                    format='%(asctime)s - %(name)s - %(levelname)s -%(module)s:  %(message)s',
+                    datefmt='%Y-%m-%d-%H-%M-%S',
+                    level=logging.WARNING
+                    )

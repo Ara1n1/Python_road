@@ -374,7 +374,7 @@ pick 3d7b863 rebase-test1
 # 修改后
 pick bb595c1 rebase-test
 s 3d7b863 rebase-test1
-# 保存退出后，进入下一个文件
+# 保存退出后，会自动进入下一个文件
 rebase-test
 rebase-test1
 # 修改合并后的记录

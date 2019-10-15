@@ -433,9 +433,8 @@ css，js和img文件夹，plugins文件夹
 #### 2. 提交表单中的方法
 
 1. **获取请求方式**：request.method(GET/POST)
-2. form表单中的数据：request.POST **querydict对像**，可以使用dict方式取值,可以使用get方法
-3. 导入django中的redirect
-4. /index/第一个**/是根目录**，如果没有根目录，**则进行路径拼接**.
+2. form表单中的数据：request.POST **querydict对像**，可以使用dict方式取值，可以使用get方法
+4. /index/第一个**/是根目录**，如果没有根目录，**则进行路径拼接**。
    - **响应头**：Location。/index/
 
 ```python
@@ -621,10 +620,10 @@ python manage.py createsuperuser
 ```python
 from app01 import models
 def orm_test(request):
-  # 获取表中所有数据，ret为QuerysSet，对象列表
-  ret = models.User.objects.all()
-  for i in ret:
-    print(i.username, i.password)
+    # 获取表中所有数据，ret为QuerysSet，对象列表
+    ret = models.User.objects.all()
+    for i in ret:
+        print(i.username, i.password)
 ```
 
 - 获取符合条件数据，**获取不到或多个会报错**
@@ -632,9 +631,9 @@ def orm_test(request):
 ```python
 from app01 import models
 def orm_test(request):
-  # 获取表中一条数据,User object
-  ret = models.User.objects.get(username='herny', password='123')
-  print(ret.username, ret.password)
+    # 获取表中一条数据,User object
+    ret = models.User.objects.get(username='herny', password='123')
+    print(ret.username, ret.password)
 ```
 
 - 使用**filter方法**做认证
@@ -642,9 +641,9 @@ def orm_test(request):
 ```python
 from app01 import models
 def orm_test(request):
-  # 获取满足条件的对象，没有获取到即为空即False
-  ret = models.User.objects.filter(username='herny', password='123')
-  print(ret.username, ret.password)
+    # 获取满足条件的对象，没有获取到即为空即False
+    ret = models.User.objects.filter(username='herny', password='123')
+    print(ret.username, ret.password)
 ```
 
 ### 3.4 ORM中的批量操作
@@ -666,7 +665,7 @@ class Product(models.Model):
 ```python
 product_list_to_insert = list()
 for i in range(10):
-		product_list_to_insert.append(Product(name='producet name ' + str(i), price))
+	product_list_to_insert.append(Product(name='producet name ' + str(i), price))
 Product.objects.bulk_create(product_list_to_insert)
 ```
 
@@ -729,11 +728,11 @@ create database dj_bookmanager
 from django.db import models
 
 class Publisher(models.Model):
-  pid = models.AutoField(primary_key = True)
-  name = models.CharField(max_length=32, unique=True)
-  # 后续添加，需要指定默认值
-  addr = models.CharField(max_length=32, default='xxx')
-  # 或者更改迁移文件
+    pid = models.AutoField(primary_key = True)
+    name = models.CharField(max_length=32, unique=True)
+    # 后续添加，需要指定默认值
+    addr = models.CharField(max_length=32, default='xxx')
+    # 或者更改迁移文件
 ```
 
 #### 4. 迁移数据库
@@ -763,14 +762,14 @@ urlpatterns = [
 ```python
 from django.shortcuts import render, HttpResponse, redirect
 def publisher_list(request):
-  # 业务逻辑
+  	# 业务逻辑
     all_pubulisher = models.Pbulisher.objects.all().order_by(pk)
     return render(request, 'publisher_list.html', {'all_pubulisher':all_pubulisher})
 ```
 
 #### 7. xxx.html
 
-1. 这里使用的是django的渲染语法(在创建app也可以指定jinja2)
+1. 这里使用的是django的渲染语法**(在创建app也可以指定jinja2)**
 2. **{{变量}}**，**{% for 循环%}{%endfor%}(需要闭合)**
 3. 如果没有参数传入时，html中的{{变量}}在页面中不显示
 
@@ -819,7 +818,7 @@ pk = request.GET.get('id')
 obj_list = models.Publisher.objects.filter(pk=pk)
 # 删除对象
 if not obj_list:
-  return HttpResponse('删除数据不存在')
+	return HttpResponse('删除数据不存在')
 obj_list.delete()
 ```
 
@@ -833,7 +832,7 @@ obj_list.delete()
 pk = request.GET.get('id')
 obj_list = models.Publiser.objects.filter(pk=pk)
 if not obj_list:
-  return HttpResponse('编辑数据不存在')
+    return HttpResponse('编辑数据不存在')
 
 obj = obj_list[0]
 # 内存中修改
@@ -854,7 +853,7 @@ obj.save()
 class Book(models.Model):
   title = models.CharField(max_length=32)
   pub_id = models.ForeignKey(to=Publisher,on_delete=models.SET(字段))
-  # on_delete=models.CASCADE（默认）
+  # on_delete=models.CASCADE（默认），2.0 
   # on_delete=models.SET(‘具体值’)
   # on_delete=models.SET_DEFAULT， defalut='xxx'
   # on_delete=models.SET_NULL
