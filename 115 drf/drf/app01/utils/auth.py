@@ -19,5 +19,4 @@ class MyAuth(BaseAuthentication):
         # restful framework 内部会赋值给requst，供以后使用
         return token_obj.user, token_obj
 
-    def authenticate_header(self, request):
-        pass
+

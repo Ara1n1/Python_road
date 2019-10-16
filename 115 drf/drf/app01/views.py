@@ -6,12 +6,11 @@ from rest_framework import exceptions
 from rest_framework.views import APIView
 
 from app01 import models
-from app01.utils.MyThrottle import MyThrottle
 
 """测试使用"""
 
 
-class MyAuthentication(object):
+class MyAuthentication:
 
     def authenticate(self, request):
         token = request._request.GET.get('token')
@@ -21,6 +20,20 @@ class MyAuthentication(object):
 
     def authenticate_header(self, request):
         pass
+
+
+class DemoView(APIView):
+    # authentication_classes = [MyAuthentication, ]
+    authentication_classes = []
+
+    def get(self, reqeust):
+        return HttpResponse('DemoView get')
+
+    def post(self, request):
+        return HttpResponse('DemoView post')
+
+    def put(self, request):
+        return HttpResponse('DemoView put')
 
 
 class Test(APIView):
@@ -46,6 +59,7 @@ class Test(APIView):
 class AuthView(APIView):
     authentication_classes = []
     permission_classes = []
+
     # throttle_classes = [MyThrottle, ]
 
     def post(self, request):

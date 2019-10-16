@@ -21,4 +21,9 @@ urlpatterns = [
     url(r'^test$', views.Test.as_view()),
     url(r'^api/v1/auth/$', views.AuthView.as_view()),
     url(r'^api/v1/order/$', views.OrderView.as_view()),
+    
+    
+    
+    url(r'^api/v1/demo/$', views.DemoView.as_view()),
+    # url(r'^api/v1/demo/$', demo),
 ]

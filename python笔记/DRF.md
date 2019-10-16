@@ -630,7 +630,186 @@ REST_FRAMEWORK = {
 5. 返回解析好的数据
 ```
 
-## 6. 序列化****
+## 6. 序列化`****`
+
+### 1. 功能
+
+1.  请求数据的验证
+2.  queryset进行序列化  
+
+### 2. 序列化器类
+
+-   **models类**
+
+```python
+from django.db import models
+
+class UserGroup(models.Model):
+    title = models.CharField(max_length=32)
+
+class UserInfo(models.Model):
+    user_type_choices = (
+        (1, '普通用户'),
+        (2, 'VIP'),
+        (3, 'SVIP'),
+    )
+    user_type = models.IntegerField(choices=user_type_choices)
+    username = models.CharField(max_length=32, unique=True)
+    password = models.CharField(max_length=64)
+	# 外键和多对多关系
+    group = models.ForeignKey('UserGroup')
+    role = models.ManyToManyField('Role')
+
+class UserToken(models.Model):
+    user = models.OneToOneField(to='UserInfo')
+    token = models.CharField(max_length=64)
+
+class Role(models.Model):
+    title = models.CharField(max_length=32)
+```
+
+#### 1. 简单使用
+
+-   ser.data：表示序列化后的数据，ser是序列化器对象
+
+```python
+"""序列化器"""
+from rest_framework import serializers
+
+class MySerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=32)
+
+class RoleView(APIView):
+    def get(self, request, *args, **kwargs):
+        roles = models.Role.objects.all()
+        # 方式一
+        # roles = roles.values()
+        # print(type(roles), roles)
+        # roles = json.dumps(list(roles), ensure_ascii=False)
+
+        # 方式二，针对多个对象，如果是单个对象则 many=False
+        ser = MySerializer(instance=roles, many=True)
+        ret = json.dumps(ser.data, ensure_ascii=False)
+
+        return HttpResponse(ret)
+```
+
+#### 2. 特殊字段
+
+-   choices、外键、多对多关系
+-   **多对多关系**：需要自定义方法，返回值为页面显示内容
+-   RoleView视图类同上
+
+```python
+"""序列化器"""
+class UserInfoSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+    # choices 选项
+    user_type = serializers.CharField(source='get_user_type_display')
+    # 外键
+    group = serializers.CharField(source='group.title')
+    # 多对对关系，自定义显示
+    role = serializers.SerializerMethodField()
+
+    # 自定义方法
+    def get_role(self, row):
+        row_obj_list = row.role.all()
+        ret = []
+        for i in row_obj_list:
+            ret.append({'id': i.id, 'title': i.title})
+        return ret
+```
+
+#### 3. 继承ModelSerializer
+
+```python
+"""序列化器"""
+class UserInfoSerializer(serializers.ModelSerializer):
+    # 增加其他字段，如果字段名和 model 类中相同，则覆盖
+    group = serializers.CharField(source='group.title')
+    user_type = serializers.CharField(source='get_user_type_display')
+
+    class Meta:
+        model = models.UserInfo
+        fields = '__all__'
+        # 表示深入到第几层，设置后不用重写 多对多和外键字段，建议 1-10
+        depth = 1
+```
+
+#### 4. 自定义字段类
+
+```python
+# 自定义字段类
+class MyField(serializers.CharField):
+    def to_presentation(self, value):
+        print(value)
+        return 'xxx'
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    # 增加其他字段，如果字段名和 model 类中相同，则覆盖
+    group = serializers.CharField(source='group.title')
+    
+    # 生称 url
+    # group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')
+    user_type = serializers.CharField(source='get_user_type_display')
+    # 自定义字段
+    xxx = MyField()
+    class Meta:
+        model = models.UserInfo
+        fields = '__all__'
+```
+
+### 3. 生成hypermedialink
+
+#### 1. 返回hypermedialink
+
+-   查看group时，使用 url
+-    必须加上 context 参数
+
+```python
+ class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.UserGroup
+        fields = '__all__'
+
+class GroupView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        groups = models.UserGroup.objects.filter(pk=pk)
+        # 必须加上 context 参数
+        ser = UserInfoSerializer(instance=userinfo, many=True, context={'request': request})
+        ret = json.dumps(ser.data, ensure_ascii=False)
+        return HttpResponse(ret)
+```
+
+#### 2. url.py 配置
+
+```python
+urlpatterns = [
+	...
+	url(r'^(?P<version>[v1|v2]+)/group/(?P<pk>\d+)$', views.GroupView.as_view(), name='gp'),
+]
+```
+
+### 4. 结论
+
+1.  使用rest_framework提供的序列化器：先导入
+2.  创建**自定义的序列化类**，如果不指定`source='字段名'`，属性名称必须为数据库中的字段名
+3.  **choices选项的字段**：指定`soucre=get_字段名_display`，本质是通过通过执行函数获取，**内部会判断**(如果是可调用的则直接调用，不可调用的则直接返回)，这里**不需要加括号**
+4.  **多对多关系**：使用` xxx = serializers.SerializerMethodField()`，自定义显示，定义函数名为 `get_xxx(self, row)`
+5.  继承 `ModelSerializer`类时，只要使用了 `depth = 1`，自动化序列化，连表获取 `多对多或外键 `的数据
+6.  生成连接：`group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')`
+
+### 5. 源码流程
+
+1.  对象：交由 `Serializer`处理，如果是 `QuerySet`交由`ListSerializer`处理
+2.   调用：`self.representation`
+
+### 6. 请求数据校验
+
+
 
 ## 7. 分页**
 

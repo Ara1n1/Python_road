@@ -116,16 +116,16 @@ STATIC_URL = '/static/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['app01.utils.auth.MyAuth'],
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [],
-    'UNAUTHENTICATED_USER': lambda: '匿名用户',
-    'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
-
-    'DEFAULT_PERMISSION_CLASSES': ['app01.utils.Permissions.MyPermission'],
-    'DEFAULT_THROTTLE_CLASSES': ['app01.utils.MyThrottle.MyThrottle'],
-
-    'DEFAULT_THROTTLE_RATES': {
-        'any string': '3/m',
-    }
+    # # 'DEFAULT_AUTHENTICATION_CLASSES': [],
+    # 'UNAUTHENTICATED_USER': lambda: '匿名用户',
+    # 'UNAUTHENTICATED_TOKEN': lambda: '匿名用户的token',
+    # 
+    # 'DEFAULT_PERMISSION_CLASSES': ['app01.utils.Permissions.MyPermission'],
+    # 'DEFAULT_THROTTLE_CLASSES': ['app01.utils.MyThrottle.MyThrottle'],
+    # 
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'any string': '3/m',
+    # }
 }
 
 from django.conf import global_settings

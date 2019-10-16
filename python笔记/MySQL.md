@@ -1272,6 +1272,8 @@ show create procedure auto_insert\G
 call auto_insert();
 # 在写入的时候不更新索引表，只针对myisam生效
 ALTER TABLE table_name DELAY_KEY_WRITE= 1;
+# 删除
+drop procedure if exists auto_insert;
 ```
 
 ### 2. 初识索引
@@ -1654,7 +1656,7 @@ select * from userinfo where name = '219879' or 1=1 ;-- and password = '79216498
 
 ```python
 sql = 'select * from 表'
-# 参数为可迭代对象,使用execut拼接
+# 参数为可迭代对象，使用execut拼接
 cur.execute(sql, (username, password))
 cur.close()
 con.close()

@@ -2695,29 +2695,40 @@ from app01 import models
 # orm操作
 # 获取所有对象
 1.obj = models.Person.objects.all()
+
 # 获取一个对象
 2.obj = models.Person.objects.get(pk=1)
+
 # 获取满足条件的所有数据，QuerySet类型，查询不到为[ ]
 3.obj = models.Person.objects.filter(age=18)
+
 # 获取 不 满足条件的所有数据
 4.obj = models.Person.objects.exclude(age=18)
+
 # 获取所有字段和字段值，QuerySet类型(里面嵌套dict), 参数不写默认所有
 # 按照指定的顺序获取
 5.obj = models.Person.objects.values(字段名1, 字段名2...)
+
 # 获取所有 字段值 ，QuerySet类型(里面嵌套tuple), 参数不写默认所有
 # 按照指定的顺序获取
 6.obj = models.Person.objects.values_list(字段名1, 字段名2...)
+
 # 默认生序排序， -pk 表示降序排序,可以指定多个字段
 7.obj = models.Person.objects.all().order_by('age', '-pk')
+
 # 反转， 前提是排好序的
 8.obj = models.Person.objects.all().order_by('pk').reverse()
+
 # 去重，内容完全相同可以去重，受默认排序影响，不支持字段去重
 9.obj = models.Person.objects.values('age').distinct()
+
 # 计数
 10.obj = models.Person.objects.all().count()
+
 # first/last, 没有则则 None, 取第一/最后一个元素，没有则为None
 11.obj = models.Person.objects.all/filter().first()
 12.obj = models.Person.objects.values().first()
+
 # exists，判断查询的数据是否存在，必须是QuerySet
 13.obj = models.Person.objects.get(pk=1).exists()
 ```
@@ -3633,15 +3644,15 @@ from django.utils.decorators import method_decorator
 # csrf_exempt,只能加到dispatch方法上
 @method_decorator(scrf_exempt, name='dispatch')
 class Login(View):
-  # 或者
-  @method_decorator(scrf_exempt)
-  def dispatch(View):
-    ret = super().dispatch(request, *args, **kwargs)
-    return ret
-  # 确保生成csrf校验的cookie
-  @method_decorator(ensure_csrf_cookie)
-  def get(self, request):
-    pass
+    # 或者
+    @method_decorator(scrf_exempt)
+    def dispatch(View):
+        ret = super().dispatch(request, *args, **kwargs)
+        return ret
+    # 确保生成csrf校验的cookie
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        pass
 ```
 
 ```python
@@ -3649,9 +3660,9 @@ class Login(View):
 # scrf_protect,某个视图需要csrf校验(方法没有限制)
 # ensure_csrf_cookie，确保生成csrf校验的cookie
 class Login(View):
-  @method_decorator(scrf_protect)
-  def post(View):
-    pass
+    @method_decorator(scrf_protect)
+    def post(View):
+        pass
 ```
 
 ### 1.2 csrf功能
