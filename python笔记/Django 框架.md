@@ -1137,7 +1137,7 @@ CREATE TABLE myapp_person (
 ```
 
 1. **表app名称_类名(小写)的名称是自动生成的**，如果你要自定义表名，需要在**model的Meta类中指定 db_table 参数**，强烈建议使用**小写**表名，特别是使用MySQL作为数据库时。
-2. id字段是自动添加的，如果你想要指定自定义主键，只需在其中一个字段中指定 **primary_key=True** 即可。如果Django发现你已经明确地设置了Field.primary_key，它将不会添加自动ID列。
+2. id字段是自动添加的，如果你想要指定自定义主键，只需在其中一个字段中指定 **primary_key=True** 即可。如果Django发现你已经明确地设置了`，它将不会添加自动ID列。
 3. 本示例中的CREATE TABLE SQL使用PostgreSQL语法进行格式化，但值得注意的是，Django会根据配置文件中指定的数据库类型来生成相应的SQL语句。
 4. Django支持MySQL5.5及更高版本。
 
@@ -1367,7 +1367,7 @@ USE_L10N = False
 ### 1.3 自定义filter
 
 1. 在app下创建一个名为**templatetags**的python包(包名是固定的)
-2. 创建xxx.py 文件，文件名自定义(**my_tags**)
+2. 创建 xxx.py 文件，文件名自定义(**my_tags**)
 3. 导入模块、注册**register**、添加装饰器
 
 ```python
@@ -1378,7 +1378,7 @@ register = template.Library()
 # 参数可以省略，形参最多有两个r
 @register.filter
 def add_(value, arg):
-  return '{}-{}'.format(value, arg)
+	return '{}-{}'.format(value, arg)
 # 使用
 {% load my_tags %}
 {{'henry'|add_:'hello'}}
@@ -1390,7 +1390,7 @@ def add_(value, arg):
 # 定义
 @register.filter(name='henry')
 def add_(value, arg):
-  return '{}-{}'.format(value, arg)
+	return '{}-{}'.format(value, arg)
 # 使用
 {% load my_tags %}
 {{'henry'|henry:'hello'}}
@@ -1403,13 +1403,13 @@ value = 'https://www.baidu.com'
 # 自定义,不会转义
 @register.filter(is_safe=True)
 def add_(value, arg):
-  return '{}{}'.format(value, arg=None)
+	return '{}{}'.format(value, arg=None)
 
 # 自定义，不会转义
 from django.utils.safestring import mark_safe
 @register.filter
 def add_(value, arg):
-  return mark_safe('{}-{}'.format(value, arg))
+    return mark_safe('{}-{}'.format(value, arg))
 ```
 
 **4. 示例**
@@ -1616,7 +1616,6 @@ name = csrfmiddlewaretoken {# 64位 #}
 - 通过获取静态文件名
 
 ```django
-{% load static %} 
 {% get_static_prefix %}
 <link rel="stylesheet" href="{% get_static_prefix %}css/dashboard.css">
 ```
@@ -1624,7 +1623,6 @@ name = csrfmiddlewaretoken {# 64位 #}
 - 给静态文件命别名
 
 ```django
-{% load static %}
 {% get_static_prefix as file_path %}
 <link rel="stylesheet" href="{{ file_path }}css/dashboard.css">
 ```
@@ -1669,7 +1667,7 @@ def join_str(*args, **kwargs):
 # my_tag.py
 @register.inclusion_tag('page.html')
 def page(num):
-  return {'num': range(1, num+1)}
+	return {'num': range(1, num+1)}
 ```
 
 ```django
@@ -1724,18 +1722,18 @@ register = template.Library()
 # page至多两个参数
 @register.filter
 def page(value,arg):
-  return xxx
+	return xxx
 
 # simple_tag
 @register.simple_tag
 def page(value,*arg):
-  return xxx
+	return xxx
 
 # inclusion_tag
 @register.inclusion_tag('page.html')
 def page(num):
-  # 必须返回字典
-  return {'num': range(1, num+1)
+	# 必须返回字典
+	return {'num': range(1, num+1)
 ```
 
 #### 5. 写模版
@@ -2200,7 +2198,7 @@ urlpatterns = [
 1. urlpatterns中的元素按照书写顺序**从上往下逐一匹配**正则表达式，一旦**匹配成功则不再继续**。
 2. 若要从URL中捕获一个值，只需要在它周围放置**一对圆括号**（**分组匹配**）。
 3. **不需要添加一个前导的反斜杠**，因为每个URL 都有。例如，应该是^articles 而不是 ^/articles。
-4. 每个正则表达式前面的'r' 是可选的但是建议加上。
+4. 每个正则表达式前面的**'r'** 是可选的但是建议加上。
 
 - **APPEND_SLASH = True**(默认为True)，如果没有 / Django会发送重定向，location:/xxx/ 会加上 /。当设置为False时，如果访问路径不包含 / ，则会找不到页面
 
@@ -2412,7 +2410,7 @@ url = reverse('app01:blog')
 - 自增的整型字段，**必填**参数primary_key=True，则成为数据库的主键。无该字段时，django自动创建。
 - 一个model不能有两个AutoField字段。
 
-#### 2. intergerfield
+#### 2. Intergerfield
 
 - 不需要额外参数
 - -2147483648 ~ 2147483647
@@ -2469,7 +2467,7 @@ obj = models.Person.objects.create(name='henry', age=19)
 4. BinaryField(Field)
    - 二进制类型
 
-#### 8. 自定义字段
+#### 9. 自定义字段
 
 1. 重写__init__方法，一般都是通过*args和**kwargs传参
 2. 在框架中一般使用super(类，self),在加上自己的操作
@@ -2482,7 +2480,7 @@ class MyCharField(models.Field):
     def __init__(self, max_length, *args, **kwargs):
         self.max_length = max_length
         super(MyCharField, self).__init__(max_length=max_length, *args, **kwargs)
- 		# 指定生成数据库字段的类型
+    # 指定生成数据库字段的类型
     def db_type(self, connection):
         """限定生成数据库表的字段类型为char，长度为max_length指定的值"""
         return 'char(%s)' % self.max_length
@@ -2639,8 +2637,6 @@ class Test(models.Model):
 'female'
 ```
 
-
-
 ## 2. Model Meta(6)
 
 - **表的参数**
@@ -2682,8 +2678,10 @@ from app01 import models
 
 ### 3.2 orm操作
 
-1. **返回对像列表**(8)
-   - all/filter/exclude/**values**/**values_list**/order_by/**reverse**/**disctinct**
+1. **返回QuerySet**(8)
+   - **对像列表**：all/filter/exclude/order_by/**reverse**/**disctinct**
+   - **values**：<class 'dict'>组成querset
+   - **values_list**：<class 'tuple'>组成querset
 2. **返回对象**(3)
    - get/first/last
 3. 返回**bool**值(1)
@@ -2830,7 +2828,7 @@ pub_obj = models.Publisher.objects.get(pk=1)
 # 关联的 类名小写_set，set集合，pub_obj必须唯一
 pub_obj.book_set        # 关系管理对象
 pub_obj.book_set.all()  # 关联的所有书籍
-# 指定 realated_name进行反向查询名称
+# 指定 realated_name 进行反向查询名称
 pub_obj.books.all()     # 关联的所有书籍
 ```
 
@@ -2934,6 +2932,7 @@ print(book)
 
 ### 1.4 关系管理对象方法(6)
 
+- **多对多关系**
 - 通过关系管理对象获取多个关联值
 
 ```python
@@ -3005,7 +3004,7 @@ obj = book.authors.create(name='diane')
 
 - **在外键中只能使用对象**
 - pub和book关系
-- **fitlter、get**
+- **filter、get**
 
 #### 1. all()
 
@@ -3017,7 +3016,7 @@ pub.book_set.all()
 
 #### 2. set(QuerySet对象)
 
-- 对象列表
+- 对象列表，覆盖历史数据
 
 ```python
 publisher = models.Publisher.objects.get(pk=1)
@@ -3027,7 +3026,7 @@ publisher.books.set(models.Book.bojects.fitler(pk__in[4,5]))
 
 #### 3. add(*QuerySet)
 
-- 一个个对象
+- **一个个对象**，不覆盖历史数据
 
 ```python
 publisher.books.add(*models.Book.bojects.fitler(pk__in[4,5]))
@@ -3091,7 +3090,7 @@ ret = models.Book.objects.filter(pk_gt=3).aggregate(Avg('price'),max=Max('price'
 
 #### 1. 基于字段
 
-- **annotate注释,**基于当前对象，添加一个注释字段
+- **annotate注释**，基于当前对象，添加一个注释字段
 
 ```python
 # .all()可以省略不写
@@ -3116,10 +3115,10 @@ for i in ret:
 ```python
 ret = models.Book.objects.values('pub/pub_id/pub__name').annotate(Min('price'))
 for i in ret:
-  print(i)
-# 错误示范,如果values添加额外字段，则分组条件也会添加这个字段
+    print(i)
+# 错误示范，如果values添加额外字段，则分组条件也会添加这个字段
 ret = models.Book.objects.values('pub/pub_id/pub__name').annotate(Min('price')).values()
-# 正确
+# 正确，最后的取值操作必须是分组和聚合字段
 ret = models.Book.objects.values('pub/pub_id/pub__name').annotate(min=Min('price')).values('pub_id', min)
 ```
 
@@ -3252,6 +3251,8 @@ LOGGING = {
 
 ## 6. 执行原生sql
 
+
+
 ```python
 from django.db import connection
 cursor = connection.cursor()
@@ -3266,8 +3267,6 @@ cursor.execute("select * from hello_author")
 raw=cursor.fetchone()  			# 返回结果
 cursor.fetchall()      			# 读取所有
 ```
-
-
 
 # 10. Cookies和Session
 
@@ -3343,7 +3342,7 @@ rep = HttpResponse的对象
 # set_cookie方法
 def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
                    domain=None, secure=False, httponly=False):
-  pass
+	pass
 # 一般来说，key和value为必选参数
 rep.set_cookie(key,value,...)
 # 服务端获取cookies
@@ -3970,8 +3969,6 @@ $.ajaxSetup({
 
 1. 从Form.errors返回一个包含Form.clean()方法抛出的ValidationErrors和使用Form.add_error(None, '…')的错误list
 
-
-
 ## 1. form简单应用
 
 ### 1.1 普通手写功能
@@ -4089,8 +4086,6 @@ def register(request):
 min_length=6,								  # 最小长度
 max_length=8,									# 最大长度，前端页面输入到8位之后，不能继续输入
 ```
-
-
 
 ## 2. form组件字段与插件
 
@@ -4685,7 +4680,7 @@ def index(request):
 
 ### 1. 作用
 
-	- 适用于所有请求的操作
+-   适用于所有请求的操作
 
 ### 2. 使用场景
 
@@ -5190,8 +5185,6 @@ Permission 中添加 is_menu 字段
 
 # 生成二级菜单
 # 菜单表 Menu
-
-
 ```
 
 ### 数据结构

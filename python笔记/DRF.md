@@ -750,7 +750,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
     # 增加其他字段，如果字段名和 model 类中相同，则覆盖
     group = serializers.CharField(source='group.title')
     
-    # 生称 url
+    # 生称 url，lookup_url_kwarg 是 url 中的参数
     # group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')
     user_type = serializers.CharField(source='get_user_type_display')
     # 自定义字段
@@ -765,7 +765,8 @@ class UserInfoSerializer(serializers.ModelSerializer):
 #### 1. 返回hypermedialink
 
 -   查看group时，使用 url
--    必须加上 context 参数
+-   `lookup_field='group_id'`：表示被序列化**数据表中**的字段，`lookup_url_kwarg`是 url 中的参数
+-    `serializer`**实例化**：必须加上 `context={'request': request}` 参数
 
 ```python
  class GroupSerializer(serializers.ModelSerializer):
@@ -805,7 +806,7 @@ urlpatterns = [
 ### 5. 源码流程
 
 1.  对象：交由 `Serializer`处理，如果是 `QuerySet`交由`ListSerializer`处理
-2.   调用：`self.representation`
+2.   `ser.data`˙中调用：`self.representation`
 
 ### 6. 请求数据校验
 

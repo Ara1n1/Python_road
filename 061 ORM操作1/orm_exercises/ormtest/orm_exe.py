@@ -8,7 +8,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "orm_exercises.settings")
 django.setup()
 
 from app01 import models
-from django.db.models import Max
+from django.db.models import Max, Count
 
 """
 1.查找所有书名里包含金老板的书
@@ -87,7 +87,9 @@ from django.db.models import Max
 """
 10.查找每个出版社出版价格最高的书籍价格  ?
 """
-# obj = models.Book.objects.annotate(max=Max('price')).values('price', 'max')
+obj = models.Book.objects.values('publisher_id').annotate(maxprice=Max('price')).values('publisher_id', 'maxprice')
+# obj = models.Publisher.objects.annotate(max=Max('book__price')).values('max', 'id', 'name', 'book__title')
+# print(obj)
 # for i in obj:
 #     print(i)
 
@@ -96,7 +98,9 @@ from django.db.models import Max
 """
 11.查找每个出版社的名字以及出的书籍数量  ?
 """
-# obj = models.Book.objects.all()
+# obj = models.Book.objects.values('publisher__name').annotate(nums=Count('id')).values('publisher__name', 'nums')
+# for i in obj:
+#     print(i)
 
 
 # select title,count(title),name from (select title,price,name from app01_book t1 right join app01_publisher t2 on t1.publisher_id = t2.id) t3 group by name;
@@ -137,21 +141,18 @@ from django.db.models import Max
 """
 16.查找每个作者写的价格最高的书籍价格 ?
 """
-# author_obj = models.Author.objects.all()
-# li = []
-# for i in author_obj:
-#     i.book_set.all()
-#     max = 0
-#     for j in i.book_set.all():
-#         max = max if j.price < max else j.price;
-#         if j == len(i.book_set.all()):
-#             print(i.name, j.title, j.price)
+# obj = models.Author.objects.annotate(maxprice=Max('book__price')).values('name', 'maxprice')
+# for i in obj:
+#     print(i)
 
 
 # select name, max(price) from (select t1.id,t1.name, t2.book_id from app01_author t1 inner join app01_book_author t2 on t1.id=t2.author_id) t3 inner join app01_book t4 on t3.book_id=t4.id group by name;
 """
 17.查找每个作者的姓名以及出的书籍数量 ?
 """
+# obj = models.Author.objects.annotate(nums=Count('book__id')).values('name', 'nums')
+# for i in obj:
+#     print(i)
 # select name, count(book_id) from (select t1.id,t1.name, t2.book_id from app01_author t1 inner join app01_book_author t2 on t1.id=t2.author_id) t3 inner join app01_book t4 on t3.book_id=t4.id group by name;
 
 """
@@ -190,6 +191,8 @@ from django.db.models import Max
 """
 22.查找书名是“跟金老板学开车”的书的所有作者
 """
+# obj = models.Book.objects.get(title='跟金老板学开车').author.all().values('name')
+# print(obj)
 
 # authors = models.Author.objects.filter(book__title='跟金老板学开车')
 # for i in authors:
@@ -200,9 +203,9 @@ from django.db.models import Max
 """
 23.查找书名是“跟金老板学开车”的书的作者的年龄
 """
-# authors = models.Author.objects.filter(book__title='跟金老板学开车')
-# for i in authors:
-#     print(i.name, i.age)
+# authors = models.Author.objects.filter(book__title='跟金老板学开车').values('age')
+# print(authors)
+
 
 # select name,age from (select author_id from (select id bid from app01_book where title='跟金老板学开车') t1 inner join app01_book_author t2 on t1.bid=t2.book_id) t3 inner join app01_author on t3.author_id=app01_author.id;
 """
@@ -226,5 +229,9 @@ from django.db.models import Max
 
 # select name,price from (select name,book_id  from (select name, id nid from (select author_id from (select id bid from app01_book where title='跟金老板学开车') t1 inner join app01_book_author t2 on t1.bid=t2.book_id) t3 inner join app01_author on t3.author_id=app01_author.id) t4  inner join app01_book_author t5 on t4.nid=t5.author_id) t6 inner join app01_book on t6.book_id=app01_book.id;
 
-f = models.Author.objects.filter(pk=1).exists()
-print(f)
+# f = models.Author.objects.filter(pk=1).exists()
+# print(f)
+
+obj = models.Author.objects.filter(book__title='跟金老板学开车').values('name', 'book__title', 'book__publisher__name')
+for i in obj:
+    print(i)

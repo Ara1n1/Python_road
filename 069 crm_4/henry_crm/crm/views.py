@@ -1,16 +1,16 @@
 import hashlib
 
-from django.db.models import F, Q
-from django.shortcuts import render, redirect, reverse, HttpResponse
-from django.views import View
-
 from crm import models
 from crm.forms import RegForm, CustomerForm
+from django.db.models import F, Q, QuerySet
+from django.shortcuts import render, redirect, reverse, HttpResponse
+from django.views import View
 from utils.pagenation import Pagenation
 
 
 def reg(request):
     form_obj = RegForm()
+
     if request.method == 'POST':
         form_obj = RegForm(request.POST)
         if form_obj.is_valid():

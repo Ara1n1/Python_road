@@ -87,6 +87,7 @@ class RoleView(APIView):
         return HttpResponse(ret)
 
 
+#
 # class UserInfoSerializer(serializers.Serializer):
 #     username = serializers.CharField()
 #     password = serializers.CharField()
@@ -97,7 +98,7 @@ class RoleView(APIView):
 #     # 多对对关系
 #     # role = serializers.CharField(source='role.all')
 #     role = serializers.SerializerMethodField()
-#
+# 
 #     def get_role(self, row):
 #         row_obj_list = row.role.all()
 #         ret = []
@@ -142,3 +143,6 @@ class GroupView(APIView):
         ser = GroupSerializer(instance=groups, many=True)
         ret = json.dumps(ser.data, ensure_ascii=False)
         return HttpResponse(ret)
+
+
+super
