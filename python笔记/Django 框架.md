@@ -3675,7 +3675,7 @@ class Login(View):
       - 如果是（GET，HEAD、OPTIONS，TRACE）**不进行校验**
    3. 其他请求方式(**POST,PUT**)，进行csrf校验
       1. 获取cookies中的csrftoken值
-      2. 获取post请求中的csrfmiddlewaretoken值
+      2. 获取post请求中的**csrfmiddlewaretoken**值
          - 能获取到赋值给—> **request_csrf_token**
          - 获取不到—>获取请求头**x-csrftoken**的值赋值给—>  **request_csrf_token**
       3. 比较request_csrf_token和csrf_token两个值，成功则接受请求，否则拒绝

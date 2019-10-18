@@ -1,3 +1,20 @@
+def outer(data):
+    def inner():
+        print(data)
+
+    return inner
+
+
+li = []
+for i in range(10):
+    li.append(outer(i))
+
+li[0]()
+li[1]()
+
+li = [1, 2, 3]
+s = {1,2,3}
+print(s + s)
 # import sys
 #
 # a = {1: 1}
@@ -76,10 +93,10 @@
 # f = open('a.txt', mode='a', encoding='utf8')
 # f.write('a')
 # f.close()
-import logging
-
-logging.basicConfig(fielname='cmdb.log',
-                    format='%(asctime)s - %(name)s - %(levelname)s -%(module)s:  %(message)s',
-                    datefmt='%Y-%m-%d-%H-%M-%S',
-                    level=logging.WARNING
-                    )
+# import logging
+#
+# logging.basicConfig(fielname='cmdb.log',
+#                     format='%(asctime)s - %(name)s - %(levelname)s -%(module)s:  %(message)s',
+#                     datefmt='%Y-%m-%d-%H-%M-%S',
+#                     level=logging.WARNING
+#                     )
