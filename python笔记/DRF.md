@@ -533,7 +533,7 @@ class APIView(View):
 
 #### 1. reqeust.POST有值的条件
 
-1.  如果请求头要求：`Content-Type:applicatoin/x-www-form-urlencode`，request.POST 才有值（request.body中解析数据）
+1.  如果请求头要求：`Content-Type:applicatoin/x-www-form-urlencode`，和请求数据格式必须是`key:value & key :value...`的格式，request.POST 才有值（request.body中解析数据）
     -   form表单默认提交的数据请求头
     -   ajax默认的请求头也符合这个要求
 2.  数据格式要求：`name=henry&pwd=123`
@@ -679,6 +679,7 @@ from rest_framework import serializers
 class MySerializer(serializers.Serializer):
     title = serializers.CharField(max_length=32)
 
+# 视图类
 class RoleView(APIView):
     def get(self, request, *args, **kwargs):
         roles = models.Role.objects.all()
@@ -810,15 +811,429 @@ urlpatterns = [
 
 ### 6. 请求数据校验
 
+#### 1. 验证post数据
+
+-   使用postman提交数据，如过没有任何数据则会输出
+    -   `{'title': [ErrorDetail(string='标题字段不能为空', code='required')]}`
+-   有数据：`OrderedDict([('title', 'test')])`
+
+```python
+"""验证功能"""
+# 自定义验证规则
+class XxValidator(object):
+
+    def __init__(self, base):
+        self.base = base
+
+    def __call__(self, value, *args, **kwargs):
+        if not value.startswith(self.base):
+            message = 'This Filed must start with %s!' % self.base
+            raise serializers.ValidationError(message)
+# 序列化器
+class UserGroupSerializer(serializers.Serializer):
+    title = serializers.CharField(error_messages={'required': '标题字段不能为空'}, validators=[XxValidator('henry')])
+# 视图类
+class UserGroupView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        ser = UserGroupSerializer(data=request.data)
+        msg = '数据提交成功'
+        if ser.is_valid():
+            print(ser.validated_data['title'])
+        else:
+            msg = ser.errors
+            print(msg)
+        return HttpResponse('%s' % msg)
+```
+
+#### 2. 使用钩子函数
+
+```python
+
+```
+
 
 
 ## 7. 分页**
 
-## 8. 路由**
+### 1. 三类分页
 
-## 9. 视图**
+-   看第n页，每页显示n条数据
+-   在第n个位置，向后查看n条数据
+-   加密分页，只能看上一页和下一页
+
+### 2. 第一种分页
+
+#### 1. 使用PageNumberPagination
+
+-   utils目录下的，serializers.py
+
+```python
+# 序列化器
+from rest_framework import serializers
+from app01 import models
+
+class PageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Role
+        fields = '__all__'
+```
+
+-   直接使用PageNumberPagination，默认不可以调整每页显示的个数，配置文件固定
+
+```python
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+
+class Page1View(APIView):
+    def get(self, request, *args, **kwargs):
+        # 获取所有数据
+        roles = models.Role.objects.all()
+		# 实例化 PageNumberPagination 类
+        pg = PageNumberPagination()
+        # 获取分页对象
+        page_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+        print(page_roles)
+        # 对分页数据仅进行序列化
+        ser = PageSerializer(instance=page_roles, many=True)
+        return Response(ser.data)
+```
+
+-   settings.py
+
+```python
+REST_FRAMEWORK = {
+    ...,
+    'PAGE_SIZE': 3,
+}
+```
+
+-   urls.py
+
+```python
+urlpatterns = [
+   	...
+    # 分页
+    url(r'^(?P<version>[v1|v2]+)/page1/$', views.Page1View.as_view()),
+]
+```
+
+#### 2. 自定义分页器
+
+```python
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+
+class MyPagination(PageNumberPagination):
+    # 每页显示个数
+    page_size = 2
+    # 通过page指定哪一页
+    page_query_param = 'page'
+    # 指定每页显示条数
+    page_size_query_param = 'size'
+    # 指定每页最大的数据量
+    max_page_size = 5
+
+class Page1View(APIView):
+    def get(self, request, *args, **kwargs):
+        ...
+        pg = MyPagination()
+		...
+        # 带有上一页和下一页的链接
+    	return pg.get_paginated_response(ser.data)
+```
+
+### 2. 第二种分页
+
+#### 1. 使用LimitOffsetPagination
+
+-   使用原生的分页器
+
+```python
+from rest_framework.pagination import LimitOffsetPagination
+
+class Page1View(APIView):
+    def get(self, request, *args, **kwargs):
+        ...
+        pg = LimitOffsetPagination()
+        ...
+```
+
+#### 2. 自定义分页
+
+````python
+class MyPagination(LimitOffsetPagination):
+    # 默认一页显示数据量
+    default_limit = 2
+    # 指定一页显示数据量
+    limit_query_param = 'limit'
+    # 指定数据开始位置 + 1
+    offset_query_param = 'offset'
+    # 限定每页最多显示的数据
+    max_limit = 6
+
+class Page1View(APIView):
+    def get(self, request, *args, **kwargs):
+        ...
+        pg = MyPagination()
+       	...
+````
+
+### 3. 第三种分页
+
+#### 1. 自定义分页器
+
+```python
+from rest_framework.response import Response
+from rest_framework.pagination import CursorPagination
+
+class MyPagination(CursorPagination):
+
+    cursor_query_param = 'cursor'
+    page_size = 2 
+    # 排序规则
+    ordering = 'id'
+    page_size_query_param = 'size'
+    max_page_size = 6
+
+class Page1View(APIView):
+    def get(self, request, *args, **kwargs):
+        ...
+        pg = MyPagination()
+       	...
+```
+
+### 4. 总结
+
+1.  数据量大，如何分页？
+    -   使用`rest_framework`中的分页器，显示上一页和下一页
+    -   数据库性能，可以向restful中引出
+2.  flask中使用 `flask_restful`组件
+
+```python
+from flask import Flask, request
+from flask_restful import Api, Resource
+
+app = Flask(__name__)
+api = Api(app)
+
+class UserAPI(Resource):
+    def get(self, uid):
+        return {'User': 'GET'}
+
+    def put(self, uid):
+        return {'User': 'PUT'}
+
+    def delete(self, uid):
+        return {'User': 'DELETE'}
+
+    # 添加认证
+    decorators = [auth.login_required]
+
+if __name__ == '__main__':
+    app.run()
+```
+
+-   绑定路由
+
+```python
+api.add_resource(UserAPI, '/users/<int:uid>', '/u/<int:uid>')
+```
+
+## 8. 视图**
+
+### 1. GenericAPIView
+
+-   `class GenericAPIView(views.APIView):pass`
+
+```python
+from rest_framework.response import Response
+from rest_framework.generics import GenericAPIView
+
+class View1View(GenericAPIView):
+    queryset = models.Role.objects.all()
+    serializer_class = PageSerializer
+    pagination_class = PageNumberPagination
+
+    def get(self, reqeust, *args, **kwargs):
+        # 获取数据
+        roles = self.get_queryset()
+        # 获取分页的数据
+        page_roles = self.paginate_queryset(roles)
+        # 序列化
+        ser = self.get_serializer(instance=page_roles, many=True)
+        return Response(ser.data)
+```
+
+### 2. GenericViewSet
+
+-   可以把获取多条数据和单条数据，通过 url 中的关系进行区分
+-   `class GenericViewSet(ViewSetMixin, generics.GenericAPIView):pass`
+-   只是增加了方法名的映射，其他功能和`GenericAPIView`完全一样
+
+```python
+from rest_framework.viewsets import GenericViewSet
+
+class View2View(GenericViewSet):
+	...    
+    def list(self, reqeust, *args, **kwargs):
+        ...
+        return Response(ser.data)
+  
+    def create(self, reqeust, *args, **kwargs):
+        pass
+```
+
+#### 2. url.py
+
+```python
+urlpatterns = [
+    # 视图
+	url(r'^(?P<version>[v1|v2]+)/view/$', views.ViewView.as_view({'get': 'list', 'post':'create'})),
+]
+```
+
+### 3. mixins系列
+
+-   ListModelMixin：实现 `list`方法
+-   CreateModelMixin：实现 `create`方法
+
+```python
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.mixins import ListModelMixin, CreateModelMixin
+
+class ViewView(ListModelMixin, CreateModelMixin, GenericViewSet):
+    queryset = models.Role.objects.all()
+    serializer_class = PageSerializer
+    pagination_class = PageNumberPagination
+```
+
+### 4. ModelViewSet
+
+-   modelviewset继承的类
+
+````python
+class ModelViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    pass
+````
+- 直接继承**ModelViewSet**
+```python
+from rest_framework.viewsets import ModelViewSet
+
+class ViewView(ModelViewSet):
+    queryset = models.Role.objects.all()
+    serializer_class = PageSerializer
+    pagination_class = PageNumberPagination
+```
+
+-   urls.py
+
+```python
+urlpatterns = [
+    ...
+	url(r'^(?P<version>[v1|v2]+)/view/$', views.ViewView.as_view({'get':'list',  'post':'create'})),
+    url(r'^(?P<version>[v1|v2]+)/view/(?P<pk>\d+)$',
+        views.ViewView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update', 'patch':'partial_update'})),
+]
+```
+
+![restful的view](/Users/henry/Documents/截图/Py截图/restful的view.png)
+
+## 9. 路由**
+
+### 1. 路由配置
+
+-   通过路由，区分不同格式的请求URL，响应不同格式的数据
+
+```python
+urlpatterns = [
+    ...
+    url(r'^(?P<version>[v1|v2]+)/view/$', views.ViewView.as_view({'get': 'list', 'post': 'create'})),
+    url(r'^(?P<version>[v1|v2]+)/view/(?P<format>\w+)/$', views.ViewView.as_view({'get': 'list', 'post': 'create'})),
+    url(r'^(?P<version>[v1|v2]+)/view/(?P<pk>\d+)/$', views.ViewView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update', 'patch': 'partial_update'})),
+    url(r'^(?P<version>[v1|v2]+)/view/(?P<pk>\d+)/(?P<format>\w+)/$', views.ViewView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update', 'patch': 'partial_update'})),
+]
+```
+
+### 2. 自动生成路由
+
+```python
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'xxx', views.ViewView)
+router.register(r'yyy', views.ViewView)
+urlpatterns = [
+    ...
+	url(r'^(?P<version>[v1|v2]+)/', include(router.urls)),
+]
+```
 
 ## 10. 渲染器*
+
+### 1. 注册app
+
+-   settings.py
+
+```python
+INSTALLED_APPS = [
+  	...,
+    'rest_framework',
+]
+```
+
+-   views.py
+
+```python
+"""带渲染器"""
+from rest_framework.response import Response
+class Page1View(APIView):
+
+    def get(self, request, *args, **kwargs):
+        roles = models.Role.objects.all()
+        ser = PageSerializer(instance=roles, many=True)
+        print(ser.data)
+        return Response(ser.data)
+```
+
+### 2. 使用
+
+-   使用时，只要写`renderer_classes = [JSONRenderer, BrowsableAPIRenderer]`即可
+
+```python
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer
+
+class TestView(APIView):
+	# 写入配置文件
+	# renderer_classes = [JSONRenderer, BrowsableAPIRenderer]
+
+    def get(self, request, *args, **kwargs):
+        roles = models.Role.objects.all()
+        pg = PageNumberPagination()
+        page_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
+        print(page_roles)
+        ser = PageSerializer(instance=page_roles, many=True)
+        return Response(ser.data)
+```
+
+-   配置文件
+
+```python
+REST_FRAMEWORK = {
+    ...
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer', 
+        'rest_framework.renderers.BrowsableAPIRenderer'
+    ],
+}
+```
+
+
 
 
 

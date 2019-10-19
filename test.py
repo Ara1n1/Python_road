@@ -11,7 +11,7 @@ for i in range(10):
 
 li[0]()
 li[1]()
-
+ 
 li = [1, 2, 3]
 s = {1,2,3}
 print(s + s)
