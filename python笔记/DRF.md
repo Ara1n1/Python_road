@@ -1233,6 +1233,77 @@ REST_FRAMEWORK = {
 }
 ```
 
+## 11. contenttype组件
+
+### 1. 作用
+
+-   django内置的一个组件，帮助开发者做连表操作
+-   一张表和多张表中的数据同时关联时，需要使用
+
+### 2. 使用
+
+#### 1. models.py
+
+-   GenericForeignKey
+-   GenericRelation
+
+```python
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+# 普通课程表
+class Course(models.Model):
+    """普通课程"""
+    title = models.CharField(max_length=32)
+    # 仅用于反向查找，不会在数据库中生成
+    price_policy_list = GenericRelation('PricePolicy')
+# 学位课程表
+class DegreeCourse(models.Model):
+    """学位课程"""
+    title = models.CharField(max_length=32)
+    price_policy_list = GenericRelation('PricePolicy')
+# 价格策略表
+class PricePolicy(models.Model):
+    price = models.IntegerField()
+    period = models.IntegerField()
+    # 具体 app 和 model 名称
+    content_type = models.ForeignKey(ContentType, verbose_name='关联表名称')
+    object_id = models.IntegerField(verbose_name='关联表数据ID')
+    # 快速实现 content_type 操作
+    content_obj = GenericForeignKey('content_type', 'object_id')
+```
+
+#### 2. views.py
+
+```python
+from django.http import HttpResponse
+from app01 import models
+
+def test(request):
+    # 添加数据
+    obj = models.DegreeCourse.objects.filter(title='python全栈').first()
+    models.PricePolicy.objects.create(price=9.9, period=30, content_obj=obj)
+
+    obj = models.DegreeCourse.objects.filter(title='python全栈').first()
+    models.PricePolicy.objects.create(price=19.9, period=60, content_obj=obj)
+
+    obj = models.DegreeCourse.objects.filter(title='python全栈').first()
+    models.PricePolicy.objects.create(price=29.9, period=90, content_obj=obj)
+
+    return HttpResponse('ok')
+
+```
+
+#### 3. 根据课程id获取课程
+
+-   `GenericRelation('PricePolicy')`
+
+```python
+course = models.Course.objects.filter(id=1).first()
+# 获取所有课程对象 
+price_poicy = course.price_policy_list.all()
+```
+
 
 
 
