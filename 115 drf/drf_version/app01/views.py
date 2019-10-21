@@ -10,6 +10,8 @@ from rest_framework.views import APIView
 from app01 import models
 from app01.utils.serializers import PageSerializer
 
+"""url携带参数"""
+
 
 class ParamVersion:
 
@@ -24,7 +26,7 @@ class UserView(APIView):
     # versioning_class = ParamVersion
     # 使用内置
     versioning_class = URLPathVersioning
-
+    
     def get(self, request, *args, **kwargs):
         # version = request.GET.get('version')
         # v = request.query_params.get('version')
@@ -297,7 +299,6 @@ class ViewView(ModelViewSet):
 
 
 """渲染器"""
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, AdminRenderer
 
 
 class TestView(APIView):

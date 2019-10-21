@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'app01.apps.App01Config',
 ]
 
@@ -130,6 +131,6 @@ CACHES = {
         }
     }
 }
+from django.conf import global_settings, settings
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"

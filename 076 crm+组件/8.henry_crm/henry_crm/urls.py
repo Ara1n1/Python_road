@@ -16,8 +16,12 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
+from rbac import views
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^crm/', include('crm.urls')),
     url(r'^rbac/', include('rbac.urls')),
+
+    url(r'^index/$', views.index, name='index'),
 ]

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 
 from serv.content import content
 from serv.devices import devices
@@ -23,3 +23,6 @@ app.register_blueprint(uploader)
 
 if __name__ == '__main__':
     app.run('0.0.0.0', 9527)
+
+app.__call__()
+request.args

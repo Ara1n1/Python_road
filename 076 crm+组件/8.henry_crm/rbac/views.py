@@ -26,6 +26,7 @@ def index(request):
 
 
 def menu_list(request):
+    print('访问：menu_list')
     mid = request.GET.get('mid')
     all_menu = models.Menu.objects.all().order_by('-weight')
     if not mid:
@@ -61,6 +62,7 @@ def menu_list(request):
 
 
 def menu_change(request, pk=None):
+    print('访问：menu_change')
     obj = models.Menu.objects.filter(pk=pk).first()
     form_obj = MenuForm(instance=obj)
     if request.method == 'POST':
@@ -80,6 +82,7 @@ def delete(request, obj, pk):
 
 
 def permission_change(request, pk=None):
+    print('访问：permission_change')
     obj = models.Permission.objects.filter(pk=pk).first()
     form_obj = PermissionForm(instance=obj)
     if request.method == 'POST':
@@ -91,11 +94,13 @@ def permission_change(request, pk=None):
 
 
 def role_list(request):
+    print('访问：role_list')
     all_roles = models.Role.objects.all()
     return render(request, 'rbac/role_list.html', {'all_roles': all_roles})
 
 
 def role_change(request, pk=None):
+    print('访问：role_change')
     obj = models.Role.objects.filter(pk=pk).first()
     form_obj = RoleForm(instance=obj)
     if request.method == 'POST':

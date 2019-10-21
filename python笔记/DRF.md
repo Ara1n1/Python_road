@@ -1297,28 +1297,10 @@ def test(request):
 #### 3. 根据课程id获取课程
 
 -   `GenericRelation('PricePolicy')`
+-   查找数据库时，使用
 
 ```python
 course = models.Course.objects.filter(id=1).first()
 # 获取所有课程对象 
 price_poicy = course.price_policy_list.all()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

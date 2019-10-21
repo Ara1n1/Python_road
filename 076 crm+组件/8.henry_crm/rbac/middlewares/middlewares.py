@@ -16,11 +16,13 @@ class AuthMiddleWare(MiddlewareMixin):
 
 	def process_request(self, request):
 		path = request.path
-		# print('白名单列表')
+		print(path)
+		"""1. print('白名单列表')"""
 		for url in settings.WHITE_LIST:
 			if re.match(url, path):
 				return
-		# print('校验登录状态')
+
+		"""2. print('校验登录状态')"""
 		if not request.session.get('is_login'):
 			return redirect('login')
 		obj = models.UserProfile.objects.filter(pk=request.session.get('user_id')).first()
@@ -31,9 +33,14 @@ class AuthMiddleWare(MiddlewareMixin):
 		# 在 my_tags.py 使用了 current_menu 属性
 		request.current_menu_id = None
 		request.breadcrumb_list = [{'title': '首页', 'url': '/index/'}]
+
+		""""3. 豁免的权限"""
 		for url in settings.EXEMPT_URL:
-			if re.match(url, path):
+			# print(path, '-'*8, url)
+			if re.match(path, url):
 				return
+
+		"""4. 验证权限"""
 		permission_dic = request.session.get(settings.PERMISSION_SESSION_KEY)
 		# print('权限列表')
 		# print(permissions,'*'*8)
@@ -51,8 +58,7 @@ class AuthMiddleWare(MiddlewareMixin):
 					# 当前访问子权限
 					request.current_menu_id = pid
 					# 路径导航
-					request.breadcrumb_list.append(
-						{'title': permission_dic[pname]['title'], 'url': permission_dic[pname]['url']})
+					request.breadcrumb_list.append({'title': permission_dic[pname]['title'], 'url': permission_dic[pname]['url']})
 					request.breadcrumb_list.append({'title': i['title'], 'url': i['url']})
 				else:
 					# 当前访问父权限(二级菜单)

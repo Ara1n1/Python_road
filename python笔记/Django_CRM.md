@@ -831,7 +831,7 @@ modelformset_factory() uses formset_factory() to generate formsets. This means t
 
 2. **开发一个权限的组件**
   
-   - 实现一个完成功能
+   - 实现一个完整功能
    
    - 提高开发效率，可以重复使用**权限组件**
    

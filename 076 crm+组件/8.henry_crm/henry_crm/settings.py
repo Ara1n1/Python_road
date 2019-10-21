@@ -139,7 +139,8 @@ WHITE_LIST = [
 ]
 
 EXEMPT_URL = [
-    '/rbac/index/$'
+    # '/rbac/index/',
+    '/index/$'
 ]
 
 # 用户权限

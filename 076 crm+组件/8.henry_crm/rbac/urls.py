@@ -18,8 +18,8 @@ from django.conf.urls import url
 from rbac import views
 
 urlpatterns = [
-    # url(r'^login/$', views.login, name='login'),
-    url(r'^index/$', views.index, name='index'),
+    url(r'^login/$', views.login, name='login'),
+    # url(r'^index/$', views.index, name='index'),
 
     url(r'^menu/list/$', views.menu_list, name='menu_list'),
     url(r'^menu/add/$', views.menu_change, name='menu_add'),

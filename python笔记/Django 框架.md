@@ -4056,35 +4056,34 @@ def register(request):
 
 ### 1.3 form 表单的功能
 
-- 前端页面是form类的对象生成的                                      -->生成HTML标签功能
-- 当用户名和密码输入为空或输错之后 页面都会提示        -->用户提交校验功能
-- 当用户输错之后 再次输入 上次的内容还保留在input框   -->保留上次输入内容
+- 前端页面是form类的对象生成的                                      -->**生成HTML标签功能**
+- 当用户名和密码输入为空或输错之后 页面都会提示        -->**用户提交校验功能**
+- 当用户输错之后 再次输入 上次的内容还保留在input框   -->**保留上次输入内容**
 
 ```django
 {# django模版 #}
 {{ form_obj.as_p }}						{# 产生一个个p标签和label、input标签 #}
-{{ obj.username }}            {# 用户名字段内容 #}
-{{ obj.字段名.id_for_label }}  {# 生成label中的，字段内容(字段id) #}
-{{ obj.errors }}							{# 错误的所有内容 #}
+{{ obj.username }}            			{# 用户名字段内容 #}
+{{ obj.字段名.id_for_label }}  		  {# 生成label中的，字段内容(字段id) #}
+{{ obj.errors }}						{# 错误的所有内容 #}
 {{ obj.errors.0 }}						{# 错误的所有内容中的第一个值，dict #}
-{{ obj.username.errors }}			{# 该字段的错误信息 #}
-{{ obj.username.errors.0 }}		{# 该字段的错误信息的第一个值 #}
+{{ obj.username.errors }}				{# 该字段的错误信息 #}
+{{ obj.username.errors.0 }}				{# 该字段的错误信息的第一个值 #}
 ```
 
 ```python
 # views.py
-
 # 字段参数（form类属性对象的参数）
-1. required=True,                # 是否允许为空
-2. widget=None,                  # HTML插件
-3. label=None,                   # 用于生成Label标签或显示内容
-4. initial=None,                 # 初始值
-5. error_messages=None，         # 错误信息 {'required': '不能为空', 'invalid': '格式错误'}
-6. validators=[],                # 自定义验证规则
-7. disabled=False,               # 是否可以编辑
+1. required=True,                		# 是否允许为空
+2. widget=None,                  		# HTML插件
+3. label=None,                   		# 用于生成Label标签或显示内容
+4. initial=None,                 		# 初始值
+5. error_messages=None,					# 错误信息 {'required': '不能为空', 'invalid': '格式错误'}
+6. validators=[],                		# 自定义验证规则
+7. disabled=False,               		# 是否可以编辑
 
-min_length=6,								  # 最小长度
-max_length=8,									# 最大长度，前端页面输入到8位之后，不能继续输入
+8. min_length=6,						# 最小长度
+9. max_length=8,						# 最大长度，前端页面输入到8位之后，不能继续输入
 ```
 
 ## 2. form组件字段与插件
@@ -4103,12 +4102,12 @@ max_length=8,									# 最大长度，前端页面输入到8位之后，不能�
 ```python
 from django import forms
 class RegForm(forms.Form):
-   username = forms.CharField(
-     min_length=6,
-     # 给username字段设置默认值
-     label = '用户名',
-     initial = 'henry',
-   )
+    username = forms.CharField(
+        min_length=6,
+        # 给username字段设置默认值
+        label = '用户名',
+        initial = 'henry',
+    )
     pwd = forms.CharField(min_length=6, label='密码')
 ```
 
@@ -4119,17 +4118,17 @@ class RegForm(forms.Form):
 ```python
 from django import forms
 class RegForm(forms.Form):
-   username = forms.CharField(
-     min_length=6,
-     # 给username字段设置默认值
-     label = '用户名',
-     initial = 'henry',
-     error_messages = {
-       'required': '不能为空',
-       'invalid': '格式有误',
-       'min_length': '用户名最短6位'
-     }
-   )
+    username = forms.CharField(
+        min_length=6,
+        # 给username字段设置默认值
+        label = '用户名',
+        initial = 'henry',
+        error_messages = {
+            'required': '不能为空',
+            'invalid': '格式有误',
+            'min_length': '用户名最短6位'
+        }
+    )
     pwd = forms.CharField(min_length=6, label='密码')
 ```
 
@@ -4139,10 +4138,10 @@ class RegForm(forms.Form):
 from django import forms
 class RegForm(forms.Form):
     pwd = forms.CharField(
-      min_length=6, 
-      label='密码',
-      # 表示输入密码时，为密文显示
-      widget = forms.widgets.PasswordInput,
+        min_length=6, 
+        label='密码',
+        # 表示输入密码时，为密文显示
+        widget = forms.widgets.PasswordInput,
     )
 ```
 
@@ -4154,24 +4153,24 @@ class RegForm(forms.Form):
 ```python
 from django import forms
 class RegForm(forms.Form):
-   username = forms.CharField(
-     min_length=6,
-     # 给username字段设置默认值
-     label = '用户名',
-     initial = 'henry',
-     error_messages = {
-       'required': '不能为空',
-       'invalid': '格式有误',
-       'min_length': '用户名最短6位'
-     }
-   )
-  pwd = forms.CharField(min_length=6, label='密码',)
-	gender = forms.fields.ChoiceField(
-  	choices=((0, 'female'), (1, 'male'), (3, 'secret')),
-    label = '性别',
-    initial = 3,
-    widget = forms.widgets.RadioSelect()
-  )
+    username = forms.CharField(
+        min_length=6,
+        # 给username字段设置默认值
+        label = '用户名',
+        initial = 'henry',
+        error_messages = {
+            'required': '不能为空',
+            'invalid': '格式有误',
+            'min_length': '用户名最短6位'
+        }
+    )
+    pwd = forms.CharField(min_length=6, label='密码',)
+    gender = forms.fields.ChoiceField(
+        choices=((0, 'female'), (1, 'male'), (3, 'secret')),
+        label = '性别',
+        initial = 3,
+        widget = forms.widgets.RadioSelect()
+    )
 ```
 
 ### 2.5 单选select
@@ -4181,13 +4180,13 @@ class RegForm(forms.Form):
 ```python
 from django import forms
 class RegForm(forms.Form):
-  ...
-  hobby = forms.ChoiceField(
-  	choices = ((1, 'travelling'), (2, 'reading'), (3, 'listening'),),
-    label = '爱好',
-    initial = 3,
-    widget=forms.widgets.Select(),
-  )
+	...
+    hobby = forms.ChoiceField(
+        choices = ((1, 'travelling'), (2, 'reading'), (3, 'listening'),),
+        label = '爱好',
+        initial = 3,
+        widget=forms.widgets.Select(),
+    )
 ```
 
 ### 2.6 多选select
@@ -4195,13 +4194,13 @@ class RegForm(forms.Form):
 ```python
 from django import forms
 class RegForm(forms.Form):
-  ...
-  hobby = forms.MultipleChoiceField(
-          choices=(('1', 'travelling'), ('2', 'reading'), ('3', 'listening'),),
-          label='爱好',
-          initial=['3'],
-          widget=forms.widgets.SelectMultiple(),
-      )
+    ...
+    hobby = forms.MultipleChoiceField(
+        choices=(('1', 'travelling'), ('2', 'reading'), ('3', 'listening'),),
+        label='爱好',
+        initial=['3'],
+        widget=forms.widgets.SelectMultiple(),
+    )
 ```
 
 ### 2.7 单选checkbox
@@ -4209,12 +4208,12 @@ class RegForm(forms.Form):
 ```python
 from django import forms
 class RegForm(forms.Form):
-  ...
-  keep = forms.ChoiceField(
-  	label = '是否记住密码',
-    initial = 'checked',
-    widget=forms.widgets.CheckboxInput(),
-      )
+    ...
+    keep = forms.ChoiceField(
+        label = '是否记住密码',
+        initial = 'checked',
+        widget=forms.widgets.CheckboxInput(),
+    )
 ```
 
 ### 2.8 多选checkbox
@@ -4222,9 +4221,9 @@ class RegForm(forms.Form):
 ```python
 from django import forms
 class RegForm(forms.Form):
-  ...
-   hobby = forms.fields.MultipleChoiceField(
-       choices=((1, 'travelling'), (2, 'reading'), (3, 'listening'),),
+    ...
+    hobby = forms.fields.MultipleChoiceField(
+        choices=((1, 'travelling'), (2, 'reading'), (3, 'listening'),),
         label="爱好",
         initial=[1, 3],
         widget=forms.widgets.CheckboxSelectMultiple()
@@ -4255,9 +4254,9 @@ def register(request):
 ```python
 from django import forms
 class RegForm(forms.Form):
-  	def __init__(self, *args, **kwargs):
-    		super(RegForm, self).__init__( *args, **kwargs)
-    		self.fields['hobby'].choices = models.Hobby.objects.values_list('pk', 'name')
+    def __init__(self, *args, **kwargs):
+        super(RegForm, self).__init__( *args, **kwargs)
+        self.fields['hobby'].choices = models.Hobby.objects.values_list('pk', 'name')
     # 从数据库中读取
   	hobby = forms.MutipleChoiceField(choices=models.Hobby.objects.all().values_list('pk', 'name'))
 ```
@@ -4279,9 +4278,9 @@ from django.forms improt Form
 from django.core.validators import RegexValidator
 
 class MyForm(From):
-  phone = forms.CharField(
-    # 正则校验器中，第二个参数是提示信息
-    validators=[RegexValidator(r'1[3-9]\d{9}$', '手机号不合法')]
+    phone = forms.CharField(
+        # 正则校验器中，第二个参数是提示信息
+        validators=[RegexValidator(r'1[3-9]\d{9}$', '手机号不合法')]
     )
 ```
 
@@ -4290,20 +4289,20 @@ class MyForm(From):
 ```python
 from django.core.exceptions import ValidationError
 def checkname(value):
-  if 'o' in value:
-    rasie ValidationError('用户名不合法')
+    if 'o' in value:
+        rasie ValidationError('用户名不合法')
     
-class RegForm(forms.Form):
-   username = forms.CharField(
-     min_length=6,
-     # 给username字段设置默认值
-     label = '用户名',
-     initial = 'henry',
-     validators = [checkname,...]
-    )
-    pwd = forms.CharField(
-    	widget = forms.widgets.PasswordInput(),
-    )
+    class RegForm(forms.Form):
+        username = forms.CharField(
+            min_length=6,
+            # 给username字段设置默认值
+            label = '用户名',
+            initial = 'henry',
+            validators = [checkname,...]
+        )
+        pwd = forms.CharField(
+            widget = forms.widgets.PasswordInput(),
+        )
 ```
 
 #### 3.3 钩子
@@ -4314,12 +4313,12 @@ class RegForm(forms.Form):
 
 ```python
 class RegForm(forms.Form):  
-  username = forms.CharField(label='用户名')
-  def clean_username(self):
-    v = self.cleaned_data.get('username')
-    if 'o' in v:
-      raise ValidationError('用户名不合法。。。。。')
-    return v
+    username = forms.CharField(label='用户名')
+    def clean_username(self):
+        v = self.cleaned_data.get('username')
+        if 'o' in v:
+            raise ValidationError('用户名不合法。。。。。')
+		return v
 ```
 
 - 全局钩子
@@ -4334,6 +4333,7 @@ class RegForm(forms.Form):
     re_pwd = forms.CharField(
           label='密码',
           widget=forms.widgets.PasswordInput,)
+    
     def clean(self):
       	super().clean() / self._validate_unique = True
         if not self.cleaned_data.get('pwd') == self.cleaned_data.get('re_pwd'):
@@ -4354,16 +4354,15 @@ class LoginForm(forms.Form):
             "required": "不能为空",
             "invalid": "格式错误",
             "min_length": "用户名最短5位"
-        }
-    ...
-
-    def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
+        })
+	。。。
+    
+	def __init__(self, *args, **kwargs):
+		super(LoginForm, self).__init__(*args, **kwargs)
         for field in iter(self.fields):
             self.fields[field].widget.attrs.update({
                 'class': 'form-control'
             })
-
 ```
 
 #### 3.5 ModelForm
@@ -4375,7 +4374,7 @@ class LoginForm(forms.Form):
 class BookForm(forms.ModelForm):
 
     class Meta:
-      	# 指定前端生成的标签
+        # 指定前端生成的标签
         model = models.Book
         # __all__ 表示可以生成所有字段，也可以使用list如['title', 'price'...]
         fields = "__all__"
@@ -4390,14 +4389,16 @@ class BookForm(forms.ModelForm):
         }
 ```
 
+-   `class Meta`中的参数
+
 ```python
-model = models.Book  # 对应的Model中的类
-fields = "__all__"      # 字段，如果是__all__,就是表示列出所有的字段
-exclude = None          # 排除的字段
-labels = None           # 提示信息
-help_texts = None       # 帮助提示信息
-widgets = None          # 自定义插件
-error_messages = None   # 自定义错误信息
+model = models.Book  					# 对应的Model中的类
+fields = "__all__"      				# 字段，如果是__all__,就是表示列出所有的字段
+exclude = None          				# 排除的字段
+labels = None           				# 提示信息
+help_texts = None       				# 帮助提示信息
+widgets = None          				# 自定义插件
+error_messages = None   				# 自定义错误信息
 ```
 
 #### 3.6 is_valid执行流程
@@ -4407,17 +4408,17 @@ error_messages = None   # 自定义错误信息
 - diisabled：默认是False
 
 1. 执行**full_clean**方法
-   1. 定义错误字典
-   2. 存放清洗过数据的字典
-2. 执行self.clean_fields方法
-   1. 循环所有字段，获取当前字段值，
+   1. **定义错误字典**
+   2. **存放清洗过数据的字典**
+2. 执行`self._clean_fields()`方法
+   1. 循环所有字段，获取当前字段值`self.fields.items():pass`
    2. 对值校验(内置和自定义校验)
-      - 通过校验self.clean_data[name] = value
+      - 通过校验`self.clean_data[name] = value`
         1. 如果有局部钩子，就要执行校验
-        2. 通过则，self.clean_data[name] = value
-        3. 不通过，self._errors添加当前字段错误，并且删除：del self.clean_data[name]
+        2. 通过则，`self.clean_data[name] = value`
+        3. 不通过，`self._errors`添加当前字段错误，并且删除：del self.clean_data[name]
       - 没有通过self._errors添加当前字段错误
-   3. 执行全局钩子clean方法
+   3. 执行**全局钩子clean方法**
    
 
 # 13. 中间件
@@ -4698,38 +4699,11 @@ def index(request):
 
     
 
-
-
-
-
-# Django rest_framework
-
--   APIView：自定义
--   GenericAPIView：get_queryset/get_serilaizer_class
--   ListAPIView
--   ModelViewSet
-
-```python
-from rest_framework.serializers import ModelSerializer
-class UserModelSerializer():
-    class meta:
-        models.User
-        fields = '__all__'
-
-class UserView(ListAPIView):
-    queryset = models.User.objects
-    serilaizer_class = UserModelSerializer
-# 具有增删改查的功能
-class UserView(ModelViewSet):
-    queryset = models.User.objects
-    serilaizer_class = UserModelSerializer
-```
-
-# Django的其他配置
+# 14. Django的其他配置
 
 ## 1. django-debug-toolbar
 
--   django-debug-toolbar 是一组可配置的面板，可显示有关当前请求/响应的各种调试信息，并在单击时显示有关面板内容的更多详细信息。
+-   `django-debug-toolbar `是一组**可配置的面板**，可显示有关当前请求/响应的各种调试信息，并在单击时显示有关面板内容的更多详细信息。
 -   **在返回 html 页面时，生效**
 
 ### 1. 安装
@@ -4742,18 +4716,19 @@ pip3 install django-debug-toolbar
 
 #### 1. settings.py
 
+-   **配置3处**
+
 ```python
 INSTALLED_APPS = [
-    …
+   	...
     'debug_toolbar',
 ]
 # 本地调试使用
 INTERNAL_IPS = ['127.0.0.1', ]
 
 MIDDLEWARE = [
-    # ...
+    ...
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    # ...
 ]
 ```
 
@@ -4850,7 +4825,7 @@ MIDDLEWARE = [
 pip install django-redis
 ```
 
--   配置
+-   缓存配置
 
 ```python
 CACHES = {
@@ -4859,14 +4834,25 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            # "PASSWORD":"xxx",
         }
     }
 }
 ```
 
+-   使用redis缓存session的配置
+
 ```python
+# SESSION_ENGINE = 'django.contrib.sessions.backends.db'   # 引擎（默认）
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+SESSION_CACHE_ALIAS = "default"								# 默认
+# pip install django-redis-sessions
+SESSION_ENGINE = 'redis_sessions.session'
+SESSION_REDIS_HOST = 'localhost'
+SESSION_REDIS_PORT = 6379
+SESSION_REDIS_DB = 0
+SESSION_REDIS_PASSWORD = 'sunck'    						# password可自定义
+SESSION_REDIS_PREFIX = 'session
 ```
 
 ## 3. 信号
