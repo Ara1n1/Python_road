@@ -1,7 +1,8 @@
-
+for i in range(1, 5):
+    print({item[i]: None for item in [{1: 1}, {2: 2}, {3: 3}, {4: 4}]})
 
 # def outer(data):
-#     def inner():
+#     def inner():s
 #         print(data)
 #
 #     return inner

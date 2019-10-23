@@ -136,7 +136,8 @@
                         {% for role in role_list %}
                             <tr {% if role.id|safe == rid %} class="active"  {% endif %}>
 
-                                <td><a href="?{% gen_role_url request role.id %}">{{ role.name }}</a></td>
+{#                                <td><a href="?{% gen_role_url request role.id %}">{{ role.name }}</a></td>#}
+                                <td><a href="?rid={{ role.id }}">{{ role.name }}</a></td>
                                 <td>
                                     {% if role.id in user_has_roles_dict %}
                                         <input type="checkbox" name="roles" value="{{ role.id }}" checked/>

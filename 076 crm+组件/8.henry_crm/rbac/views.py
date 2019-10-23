@@ -53,7 +53,7 @@ def menu_list(request):
         if pid:
             permission_dict[pid]['children'].append(i)
 
-    # print(permission_dic)
+    # print(permission_dict)
     return render(request, 'rbac/menu_list.html',
                   {'all_menu': all_menu,
                    'all_permission': permission_dict.values(),
@@ -122,6 +122,7 @@ def multi_permissions(request):
     :return:
     """
     post_type = request.GET.get('type')
+
     # 更新和删除
     FormSet = modelformset_factory(models.Permission, MultiPermissionForm, extra=0)
     # 新增
@@ -204,6 +205,7 @@ def distribute_permissions(request):
     user_has_roles = UserProfile.objects.filter(id=uid).values('id', 'roles')
     # 用户所拥有角色id的字典
     user_has_roles_dict = {item['roles']: None for item in user_has_roles}
+    # print(user_has_roles_dict, 'user_has_roles_dict')
     # 所有的角色
     role_list = models.Role.objects.all()
 

@@ -200,7 +200,6 @@ class RegForm(forms.ModelForm):
             return self.cleaned_data
         self.add_error('re_password', '两次密码不一致')
         raise ValidationError('两次密码不一致')
-
 ```
 
 ### 1.4 models.py
@@ -465,7 +464,6 @@ class CustomerForm(forms.ModelForm):
                 print(i, type(i))
             if isinstance(i, DateField):
                 i.widget = forms.TextInput(attrs={'placeholder': "YYYY-MM-DD", 'autocomplete': "off", 'type': 'date'})
-
 ```
 
 ## 2.3 模版文件
@@ -479,13 +477,15 @@ class CustomerForm(forms.ModelForm):
 ```django
 {# ModelForm通过for循环生成各个字段 #}
 {% for i in obj %}
-		<div class="form-group col-sm-3"  style="text-align: right">
-				<label for="{{ i.id_for_label }}" {% if not i.field.required %}style="color:#8f8f8f"{% endif %}>{{ i.label }}:</label>
-		</div>
-		<div class="form-group col-sm-7 {% if i.errors %}has-error{% endif %}"{% if not i.field.required %} style="color:#8f8f8f"{% endif %}>
-      {{ i }}
-			<span class="help-block">{{ i.errors.0 }}</span>
-		</div>
+	<div class="form-group col-sm-3"  style="text-align: right">
+    	<label for="{{ i.id_for_label }}"
+               {% if not i.field.required %}style="color:#8f8f8f"{% endif %}>{{ i.label }}:
+        </label>
+	</div>
+<div class="form-group col-sm-7 {% if i.errors %}has-error{% endif %}"{% if not i.field.required %} style="color:#8f8f8f"{% endif %}>
+    {{ i }}
+    <span class="help-block">{{ i.errors.0 }}</span>
+</div>
 {% endfor %}
 ```
 
@@ -569,11 +569,11 @@ select class='form-control'
 ## 1. Q查询
 
 ```python
-q = Q()                                       # 默认不可更改
-q.connector = 'OR'												    # 连接条件为 'OR'
-q.children.append(Q(qq__contains='查询关键词')) # children方法，类似列表
-Q(qq__contains=query)                         # Q查询条件格式
-Q(('qq__contains',query))   									# 通过字符串方式，生成Q条件
+q = Q()                                       	# 默认不可更改
+q.connector = 'OR'								# 连接条件为 'OR'
+q.children.append(Q(qq__contains='查询关键词')) 	 # children方法，类似列表
+Q(qq__contains=query)                         	# Q查询条件格式
+Q(('qq__contains',query))   					# 通过字符串方式，生成Q条件
 # 示例，可以运用到类中
 def search(field_list):
   	query = request.GET.get('query', '')
@@ -1309,14 +1309,13 @@ def breadcrumb(request):
    ```
 
 	使用 css js
-
-
-```python
-# css
-<link rel="stylesheet" href="{% static 'css/nav.css' %} "/>
-# js
-<script src="{% static 'rbac/js/menu.js' %} "></script>
-```
+	
+	```python
+	# css
+	<link rel="stylesheet" href="{% static 'css/nav.css' %} "/>
+	# js
+	<script src="{% static 'rbac/js/menu.js' %} "></script>
+	```
 
 10. 路径导航
 
