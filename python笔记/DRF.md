@@ -23,7 +23,7 @@ pip install djangorestframework
 
 -   **dispatch 是 request 请求的入口**
 
-1.  对原生的 request 进行加工（**丰富了一些功能**），封装了 request 和 Basic对象list
+1.  对原生的 request 进行加工（**丰富了一些功能**），封装了 request 和 **解析、认证对象list**
 2.  获取**原生的 request**，使用 `request._request`
 3.  获取**认证类对象**，`request.authenticators`
 
@@ -98,6 +98,7 @@ class APIView(View):
         self.response = self.finalize_response(request, response, *args, **kwargs)
         return self.response
     
+    # self.initialize_request(request, *args, **kwargs)中调用
     def get_authenticators(self):
         return [auth() for auth in self.authentication_classes]
     # self.initial(request, *args, **kwargs)中调用
@@ -188,9 +189,9 @@ class OrderView(APIView):
 3. 执行 self.initial(request, *args, **kwargs)
 4. 执行 initial 中的 self.perform_authentication(request)执行request.user
 6. @property
-   def user(self):
-       ...
-       self._authenticate()
+    def user(self):
+        ...
+        self._authenticate()
 7. 执行 _authenticate(self)，循环 self.authenticators 对象，执行 authenticate 的方法
 8. 执行自定义类中的 authenticate 的方法
 9. 执行视图函数
@@ -450,10 +451,10 @@ class UserView(APIView):
      
     # 通过类获取 版本
     print(request.version)
-    # url 方向解析
+    # url 反向解析
     url = request.versioning_scheme.reverse(viewname='user', request=request)
     print(url, 'here')
-    # 使用django 的url 反向解析
+    # 对比使用django 的url 反向解析
     user_url = reverse(viewname='user', kwargs={'version': 'v2'})
     print('user_url: ', user_url)
     return HttpResponse('用户列表')
@@ -507,6 +508,7 @@ class APIView(View):
         request.accepted_renderer, request.accepted_media_type = neg
 
         # Determine the API version, if versioning is in use.
+        # 版本相关
         version, scheme = self.determine_version(request, *args, **kwargs)
         request.version, request.versioning_scheme = version, scheme
 
@@ -617,6 +619,7 @@ REST_FRAMEWORK = {
 -   本质：根据**content-type**头进行数据解析
 
 ```python
+from rest_framework.request import Request
 1. 执行 request.data
 	@property
 	def data(self):
@@ -656,8 +659,9 @@ class UserInfo(models.Model):
     user_type = models.IntegerField(choices=user_type_choices)
     username = models.CharField(max_length=32, unique=True)
     password = models.CharField(max_length=64)
-	# 外键和多对多关系
+	# 外键
     group = models.ForeignKey('UserGroup')
+    # 多对多关系
     role = models.ManyToManyField('Role')
 
 class UserToken(models.Model):
@@ -683,7 +687,7 @@ class MySerializer(serializers.Serializer):
 class RoleView(APIView):
     def get(self, request, *args, **kwargs):
         roles = models.Role.objects.all()
-        # 方式一
+        # 方式一，不使用序列化类
         # roles = roles.values()
         # print(type(roles), roles)
         # roles = json.dumps(list(roles), ensure_ascii=False)
@@ -697,6 +701,7 @@ class RoleView(APIView):
 
 #### 2. 特殊字段
 
+-   `source`参数：**表示字段来源**，解决**choices**的问题
 -   choices、外键、多对多关系
 -   **多对多关系**：需要自定义方法，返回值为页面显示内容
 -   RoleView视图类同上
@@ -713,7 +718,7 @@ class UserInfoSerializer(serializers.Serializer):
     # 多对对关系，自定义显示
     role = serializers.SerializerMethodField()
 
-    # 自定义方法
+    # 自定义方法名格式：'get_ + 自定义字段名'，如：get_role
     def get_role(self, row):
         row_obj_list = row.role.all()
         ret = []
@@ -723,6 +728,8 @@ class UserInfoSerializer(serializers.Serializer):
 ```
 
 #### 3. 继承ModelSerializer
+
+-   `class Meta`的属性：model、fields、depth、exclude、
 
 ```python
 """序列化器"""
@@ -751,8 +758,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
     # 增加其他字段，如果字段名和 model 类中相同，则覆盖
     group = serializers.CharField(source='group.title')
     
-    # 生称 url，lookup_url_kwarg 是 url 中的参数
-    # group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')
+    # 生成 hypermedialink 时使用， url，lookup_url_kwarg 是 url 中的参数
+    group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')
+    
     user_type = serializers.CharField(source='get_user_type_display')
     # 自定义字段
     xxx = MyField()
@@ -765,16 +773,16 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
 #### 1. 返回hypermedialink
 
--   查看group时，使用 url
+-   查看group时，使用 url。**在序列化器中进行设置**
 -   `lookup_field='group_id'`：表示被序列化**数据表中**的字段，`lookup_url_kwarg`是 url 中的参数
 -    `serializer`**实例化**：必须加上 `context={'request': request}` 参数
 
 ```python
- class GroupSerializer(serializers.ModelSerializer):
+class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.UserGroup
         fields = '__all__'
-
+# 视图类
 class GroupView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -798,11 +806,11 @@ urlpatterns = [
 ### 4. 结论
 
 1.  使用rest_framework提供的序列化器：先导入
-2.  创建**自定义的序列化类**，如果不指定`source='字段名'`，属性名称必须为数据库中的字段名
+2.  创建**自定义的序列化类**，如果**不指定**`source='字段名'`，属性名称必须为数据库中的字段名
 3.  **choices选项的字段**：指定`soucre=get_字段名_display`，本质是通过通过执行函数获取，**内部会判断**(如果是可调用的则直接调用，不可调用的则直接返回)，这里**不需要加括号**
 4.  **多对多关系**：使用` xxx = serializers.SerializerMethodField()`，自定义显示，定义函数名为 `get_xxx(self, row)`
-5.  继承 `ModelSerializer`类时，只要使用了 `depth = 1`，自动化序列化，连表获取 `多对多或外键 `的数据
-6.  生成连接：`group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')`
+5.  继承 `ModelSerializer`类时，只要使用了 `depth = 1`，自动化序列化，连表获取 **多对多或外键**的数据
+6.  生成连接：序列化器中使用：`group = serializers.HyperlinkedIdentityField(view_name='gp', lookup_field='group_id', lookup_url_kwarg='pk')`
 
 ### 5. 源码流程
 
@@ -849,10 +857,29 @@ class UserGroupView(APIView):
 #### 2. 使用钩子函数
 
 ```python
+# 局部钩子
+def validate_title(self, value):
+    """
+    validate_字段名, 对单个字段进行校验
+    :param value: 对应提交的title的值
+    :return:
+    """
+    if "o" in value:
+        raise serializers.ValidationError("不能包含o")
+	return value
 
+# 全局钩子
+def validate(self, attrs):
+	"""
+    可对所有字段进行校验
+    :param attrs: 提交的所有数据
+    :return: 校验通过时返回attrs
+    """
+	if attrs['usernanme'].startswith('h'):
+		return attrs
+	else:
+		raise serializers.ValidationError("用户名必须以 h 开头")
 ```
-
-
 
 ## 7. 分页**
 
@@ -879,7 +906,7 @@ class PageSerializer(serializers.ModelSerializer):
         fields = '__all__'
 ```
 
--   直接使用PageNumberPagination，默认不可以调整每页显示的个数，配置文件固定
+-   直接使用PageNumberPagination，默认不可以通过参数调整每页显示的个数，配置文件固定
 
 ```python
 from rest_framework.response import Response
@@ -894,7 +921,7 @@ class Page1View(APIView):
         # 获取分页对象
         page_roles = pg.paginate_queryset(queryset=roles, request=request, view=self)
         print(page_roles)
-        # 对分页数据仅进行序列化
+        # 仅对分页数据进行序列化
         ser = PageSerializer(instance=page_roles, many=True)
         return Response(ser.data)
 ```
@@ -1045,6 +1072,7 @@ api.add_resource(UserAPI, '/users/<int:uid>', '/u/<int:uid>')
 ### 1. GenericAPIView
 
 -   `class GenericAPIView(views.APIView):pass`
+-   不需要手动实例化，直接调用其内部实现的方法
 
 ```python
 from rest_framework.response import Response
@@ -1067,7 +1095,7 @@ class View1View(GenericAPIView):
 
 ### 2. GenericViewSet
 
--   可以把获取多条数据和单条数据，通过 url 中的关系进行区分
+-   **可以把获取多条数据和单条数据，通过 url 中的关系进行区分**
 -   `class GenericViewSet(ViewSetMixin, generics.GenericAPIView):pass`
 -   只是增加了方法名的映射，其他功能和`GenericAPIView`完全一样
 
@@ -1075,11 +1103,11 @@ class View1View(GenericAPIView):
 from rest_framework.viewsets import GenericViewSet
 
 class View2View(GenericViewSet):
-	...    
-    def list(self, reqeust, *args, **kwargs):
-        ...
+	。。。    
+	def list(self, reqeust, *args, **kwargs):
+        。。。
         return Response(ser.data)
-  
+
     def create(self, reqeust, *args, **kwargs):
         pass
 ```
@@ -1162,6 +1190,8 @@ urlpatterns = [
 
 ### 2. 自动生成路由
 
+-   urls.py
+
 ```python
 from rest_framework import routers
 
@@ -1237,7 +1267,7 @@ REST_FRAMEWORK = {
 
 ### 1. 作用
 
--   django内置的一个组件，帮助开发者做连表操作
+-   django内置的一个组件，帮助开发者**做连表操作**
 -   一张表和多张表中的数据同时关联时，需要使用
 
 ### 2. 使用
@@ -1257,11 +1287,13 @@ class Course(models.Model):
     title = models.CharField(max_length=32)
     # 仅用于反向查找，不会在数据库中生成
     price_policy_list = GenericRelation('PricePolicy')
+
 # 学位课程表
 class DegreeCourse(models.Model):
     """学位课程"""
     title = models.CharField(max_length=32)
     price_policy_list = GenericRelation('PricePolicy')
+
 # 价格策略表
 class PricePolicy(models.Model):
     price = models.IntegerField()
@@ -1286,12 +1318,9 @@ def test(request):
 
     obj = models.DegreeCourse.objects.filter(title='python全栈').first()
     models.PricePolicy.objects.create(price=19.9, period=60, content_obj=obj)
-
-    obj = models.DegreeCourse.objects.filter(title='python全栈').first()
-    models.PricePolicy.objects.create(price=29.9, period=90, content_obj=obj)
+    。。。
 
     return HttpResponse('ok')
-
 ```
 
 #### 3. 根据课程id获取课程

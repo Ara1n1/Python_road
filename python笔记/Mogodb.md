@@ -101,7 +101,7 @@ db.users.find({hobby:[1,2,3,4,5]})
 db.users.find({hobby:{'$all':[3,5,1]}}) 
 ```
 
-#### 4. 范围查询
+#### d4. 范围查询
 
 -   数学比较符($gt/lt/get/let/eq/ne)
 
@@ -123,7 +123,7 @@ db.users.find({hobby:2})
 
 #### 5. 更改update()
 
-1.  db.tablename.update({查询条件}, $修改器:{修改内容})
+1.  db.tablename.update({查询条件},` $修改器:{修改内容})`
 2.  查询并修改符合条件的**第一条数据**
 3.  $：**修改器**(单个字段进行修改)
     1.  $set：强制将某值修改覆盖，如果不存在则创建
@@ -159,7 +159,7 @@ db.users.update({'name':'echo'}, {'$pop':{'hobby':1/-1}})
 db.users.update({'name':'echo'}, {'$pushAll':{'hobby':[a,b,c]}})
 
 # $pull：删除符合条件的所有元素(python的 remove)
-db.users.update({name:'henry'}, {$pull: {hobby:6}})
+db.users.update({name:'henry'}, {'$pull': {hobby:6}})
 # $pullAll：批量删除符合条件的元素
 db.users.update({'name':'echo'}, {'$pullAll':{'hobby':[3,4,5]}})
 ```
@@ -189,7 +189,7 @@ db.users.remove({name:'oleg'}, {justOne:true})
 
 ```python
 db.tablename.insertOne({'name':'dianel'})
-db.tablename.insertMany({'name':'dianel'},{'name':'oleg'})
+db.tablename.insertMany([{'name':'dianel'},{'name':'oleg'}])
 ```
 
 -   查询：findOne和find
@@ -266,7 +266,7 @@ print(res.inserted_id, type(res.inserted_id))
 res = MongoDB.Users.find_one({'_id':ObjectId(res)})
 print(res)
 
-# sursor是一个生成器
+# cursor是一个生成器
 for row in res:
     print(row)
 ```

@@ -1,20 +1,22 @@
-def outer(data):
-    def inner():
-        print(data)
-
-    return inner
 
 
-li = []
-for i in range(10):
-    li.append(outer(i))
-
-li[0]()
-li[1]()
- 
-li = [1, 2, 3]
-s = {1,2,3}
-print(s + s)
+# def outer(data):
+#     def inner():
+#         print(data)
+#
+#     return inner
+#
+#
+# li = []
+# for i in range(10):
+#     li.append(outer(i))
+#
+# li[0]()
+# li[1]()
+#
+# li = [1, 2, 3]
+# s = {1,2,3}
+# print(s + s)
 # import sys
 #
 # a = {1: 1}

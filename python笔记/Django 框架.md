@@ -1952,7 +1952,7 @@ class AddPublisher(View):
 | 6    | request.scheme             | 请求方案，通常为http 或 https                                |
 | 7    | request.encoding           | 编码方式，为None则则表示使用 DEFAULT_CHARSET 的设置，默认为 '**utf-8**'）。 |
 | 8    | **request.FILES**          | 上传的文件，**可以有多个**                                   |
-| 9    | request.META               | **获取请求头**，全大写，加HTTP， - 变称_s                    |
+| 9    | request.META               | **获取请求头**，全大写，加`HTTP`， - 变成`_s`                |
 | 10   | request.user               | Django提供的auth模块，获得当前登陆的用户                     |
 | 11   | request.session            | session数据                                                  |
 | 12   | request.COOKIES            | 普通的cookie，请求头cookie                                   |
@@ -2113,9 +2113,9 @@ def index(request):
 
 ```python
 def my_view(request):
-  ...
-  # 永久重定向,为False时为临时重定向
-  return redirect('/index/', permanent=True)
+    ...
+    # 永久重定向,为False时为临时重定向
+    return redirect('/index/', permanent=True)
 ```
 
 ##### 3. 临时重定向和永久重定向
@@ -3251,8 +3251,6 @@ LOGGING = {
 
 ## 6. 执行原生sql
 
-
-
 ```python
 from django.db import connection
 cursor = connection.cursor()
@@ -3341,8 +3339,7 @@ print(request.COOKIES.get('is_login'))
 rep = HttpResponse的对象
 # set_cookie方法
 def set_cookie(self, key, value='', max_age=None, expires=None, path='/',
-                   domain=None, secure=False, httponly=False):
-	pass
+               domain=None, secure=False, httponly=False): pass
 # 一般来说，key和value为必选参数
 rep.set_cookie(key,value,...)
 # 服务端获取cookies
@@ -3357,7 +3354,7 @@ def set_signed_cookie(self, key, value, salt='', **kwargs):
     value = signing.get_cookie_signer(salt=key + salt).sign(value)
     return self.set_cookie(key, value, **kwargs)
 # 给cookie进行加密
-rep.set_signed_cookie(key,value,salt='加密盐',...)
+rep.set_signed_cookie(key, value, `salt='加密盐',...)
 ```
 
 ```python
@@ -4399,6 +4396,7 @@ labels = None           				# 提示信息
 help_texts = None       				# 帮助提示信息
 widgets = None          				# 自定义插件
 error_messages = None   				# 自定义错误信息
+depth = 1								# 表示深入到第几层，设置后不用重写 多对多和外键字段，建议 1-10
 ```
 
 #### 3.6 is_valid执行流程
@@ -4921,7 +4919,7 @@ def callback1(sender, **kwargs):
     print(sender, kwargs)
 ```
 
-### 2. 自定义信号
+### 2. 自定义信号(3步)
 
 -   **定义信号**：sg.py
 
@@ -5023,7 +5021,7 @@ class Router:
 -   **Settings.py**
 
 ```python
-DATABASE_ROUTER = ['myrouter.Router']
+DATABASE_ROUTERS = ['myrouter.Router']
 ```
 
 ### 2. 一主多从

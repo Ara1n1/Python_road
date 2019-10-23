@@ -25,6 +25,8 @@ urlpatterns = [
     # url(r'^(?P<version>[v1|v2]+)/view/(?P<format>\w+)/$', views.ViewView.as_view({'get': 'list', 'post': 'create'})),
     # url(r'^(?P<version>[v1|v2]+)/view/(?P<pk>\d+)/$', views.ViewView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update', 'patch': 'partial_update'})),
     # url(r'^(?P<version>[v1|v2]+)/view/(?P<pk>\d+)/(?P<format>\w+)/$', views.ViewView.as_view({'get': 'retrieve', 'delete': 'destroy', 'put': 'update', 'patch': 'partial_update'})),
+
+    # 路由配置
     url(r'^(?P<version>[v1|v2]+)/', include(router.urls)),
 
     # 渲染器 

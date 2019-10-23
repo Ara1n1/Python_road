@@ -18,5 +18,7 @@ def test(request):
     # 获取所有课程对象
     price_poicy = course.price_policy_list.all()
     print(price_poicy)
+    for i in price_poicy:
+        print(i.id, i.price, i.period, i.object_id, i.content_type_id)
 
     return HttpResponse('ok')
