@@ -3,6 +3,32 @@
 -   是个web服务器、常用作静态文件服务器、常用作负载均衡。
 -   nginx是个web服务器,常用作静态文件服务器，反向代理服务器,邮件代理服务器,负载均衡服务器。
 
+## 0. 虚拟环境
+
+### 1. 安装
+
+```pythom
+pip install virtualenv -i https://pypi.douban.com/simple
+```
+
+### 2. 新建
+
+```shell
+# 新建到当前文件夹，虚拟环境为 test-env
+virtualenv --no-site-packages --python=python3 test-env
+```
+
+-   安装`virtualenvwarpper`
+
+```shell
+pip install virtualenvwarpper
+workon
+# 会有默认路径
+mkvirtualenv -p python3 test
+# 进入虚拟环境
+workon 虚拟环境名 
+```
+
 ## 1. 安装、配置文件
 
 ### 1. 安装
@@ -517,3 +543,6 @@ server {
 ```
 
 ### 4. 安装并启动redis
+
+
+

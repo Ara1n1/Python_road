@@ -311,8 +311,6 @@ from geventwebsocket.websocket import WebSocket # 用于语法提示即：#type:
 ws = Flask(__name__)
 web_socket = {}
 
-
-
 if __name__ == '__main__':
     http_server = WSGIServer(('0.0.0.0', 9528), ws, handler_class=WebSocketHandler)
     http_server.serve_forever()
@@ -429,21 +427,3 @@ Redis					# 使用 redis 记录
 # 对接图灵机器人
 toy 之间的对话，语音提醒
 ```
-
-
-
-
-
-​	
-​	
-
-
-
-
-
-
-
-
-
-​		
-​		

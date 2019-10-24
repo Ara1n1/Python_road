@@ -7,7 +7,7 @@ from serv.toys import toys
 from serv.users import users
 
 app = Flask(__name__)
-# app.debug = True
+app.debug = True
 app.register_blueprint(users)
 app.register_blueprint(content)
 app.register_blueprint(devices)
