@@ -12,14 +12,14 @@
 
 ### redis特性
 
-1.  Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作数据库、缓存和消息中间件
+1.  Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作**数据库**、**缓存**和**消息中间件**
 2.  **redis是c语言编写的**，支持数据持久化，是key-value类型数据库。
 3.  应用在缓存，队列系统中
-4.  redis支持数据备份，也就是master-slave模式
+4.  redis支持数据备份，高可用也就是master-slave模式
 
 ### 优势
 
-1.  Redis具有很好的性能，可以提供10万次/秒的读写
+1.  Redis具有很好的性能，可以提供`10万次/秒`的读写
 2.  用作缓存数据库，数据放在内存中
 3.  替代某些场景下的mysql，如社交类app
 4.  大型系统中，可以存储session信息，购物车订单
@@ -37,7 +37,7 @@
 #### 1. 环境准备
 
 ```shell
-wget   http://download.redis.io/releases/redis-4.0.10.tar.gz
+wget http://download.redis.io/releases/redis-4.0.10.tar.gz
 tar xzvf redis-4.0.10.tar.gz
 ```
 
@@ -152,7 +152,7 @@ ttl queue						# 查看剩余时间
 persist	queue					# 取消queue的过期时间
 exists key						# 判断key是否存在
 del key							# 删除key，可以删除多个
-dbsize key						# 当前库key的数量
+dbsize 							# 当前库key的数量
 flushdb							# 清除redis的所有key
 flushall						# 清空所有数据库的所有 key
 ```
@@ -166,7 +166,13 @@ flushall						# 清空所有数据库的所有 key
     4.  集合（sets）
     5.  有序集合（sorted sets）
 
-#### 1. 字符串（strings）
+#### 1. 字符串(strings)(10)
+
+-   set系列：set、mset、getset（3）
+-   get系列：get、mget、getrange（3）
+-   len系列：strlen（1）
+-   -+系列：incr、decr（2）
+-   其他：exists（1）
 
 ```shell
 # string 类型，通过set命令设置
@@ -190,14 +196,20 @@ incr 'prize'
 # 自减1
 decr 'prize'
 ```
-#### 2. 散列（hashes）
+#### 2. 散列(hashes)(11)
+
+-   set系列：hset、hmset、hsetnx（3）
+-   get系列：hget、hmget（2）
+-   del系列：hdel（1）
+-   k/v系列：hkeys、hvals、hgetall（3）
+-   其他：hlen、hexists（2）
 
 ```shell
 # 将哈希表 key 中的字段 field 的值设为 value
 hset stu name 'henry' age '18' height '180' 
 # 获取存储在哈希表中指定字段的值
 hget stu name
-# 如果给定字段已经存在且没有操作被执行
+# 如果给定字段已经存在则没有操作被执行
 hsetnx key field value
 
 # 同时将多个 field-value (域-值)对设置到哈希表 key 中
@@ -222,7 +234,13 @@ hgetall key
 hlen key
 ```
 
-#### 3. 列表（lists）
+#### 3. 列表(lists)(13)
+
+-   push系列：lpush、rpush、lpushx、rpushx（4）
+-   pop系列：lpop、rpop、blpop、brpop（4）
+-   **range系列：lrange（1）**
+-   **index系列：lset、lindex（2）**
+-   **其他：ltrim、llen（2）**
 
 ```shell
 # 双向队列
@@ -250,7 +268,13 @@ ltrim key start stop
 lpushx/rpushx key 
 ```
 
-#### 4. 集合（sets）
+#### 4. 集合(sets)(7)
+
+-   add系列：sadd（1）
+-   查看：smembers（1）
+-   删除：srem（1）
+-   成员：sismember（1）
+-   交并集：sdiff、sinter、sunion（3）
 
 -   redis的集合，是一种无序的集合，集合中的元素没有先后顺序。
 
@@ -264,6 +288,7 @@ smembers url
 srem url 'http://www.jd.com'
 # 判断是否是集合的元素
 sismember url 'http://www.jd.com'
+
 # 列出 url - url2
 sdiff url url2
 # 返回集合的交集
@@ -290,7 +315,7 @@ subscribe go
 
 -   **触发机制**
     	1. 手动执行save命令
-     	2. 或者配置触发条件  save  200   10   #在200秒中内,超过10个修改类的操作
+     2.  或者配置触发条件  save  200   10   #在200秒中内,超过10个修改类的操作
 
 ### 1. 方式一：rdb
 
@@ -328,7 +353,7 @@ save
 
 -   AOF（append-only log file），将修改类的操作命令,追加到日志文件中
 -   AOF 文件中的命令全部以**redis协议的格式**保存，新命令追加到文件末尾。
--   优点：最大程序保证数据不丢
+-   优点：最大程度保证数据不丢
 -   缺点：日志记录非常大
 
 #### 1. aof配置文件
@@ -418,7 +443,7 @@ dbfilename dump.rdb
 
 #### 2. slave库
 
--   6380.conf 、6381l.conf
+-   6380.conf 、6381.conf
 
 ```shell
 # 6380和 6381配置主从
@@ -463,14 +488,14 @@ sed -i 's/slaveof 127.0.0.1 6379/slaveof 127.0.0.1 6380/g' 6381.conf
 
 #### 1. 简介
 
-1.  Redis-Sentinel是redis官方推荐的高可用性解决方案，当用redis作master-slave的高可用时，如果master本身宕机，redis本身或者客户端都没有实现主从切换的功能。
-2.  redis-sentinel就是一个独立运行的进程，用于监控多个master-slave集群，自动发现master宕机，进行自动切换slave > master。
+1.  `Redis-Sentinel`是redis官方推荐的高可用性解决方案，当用redis作master-slave的高可用时，如果master本身宕机，redis本身或者客户端都没有实现主从切换的功能。
+2.  `redis-sentinel`就是一个独立运行的进程，用于监控多个master-slave集群，自动发现master宕机，进行自动切换slave --> master。
 
 #### 2. sentinel主要功能
 
 1.  不时的监控redis是否良好运行，如果节点不可达就会对节点进行**下线标识**
-2.  如果被标识的是主节点，sentinel就会和其他的sentinel节点“协商”，如果其他节点也人为主节点不可达，就会选举一个sentinel节点来完成自动故障转移
-3.  在master-slave进行切换后，master_redis.conf、slave_redis.conf和sentinel.conf的内容都会发生改变，即master_redis.conf中会多一行slaveof的配置，sentinel.conf的监控目标会随之调换
+2.  如果被标识的是主节点，sentinel就会和其他的sentinel节点“协商”，如果其他节点也认为主节点不可达，就会选举一个sentinel节点来完成自动故障转移
+3.  在master-slave进行切换后，master_redis.conf、slave_redis.conf和sentinel.conf的内容都会发生改变，即`master_redis.conf 中会多一行slaveof的配置`，sentinel.conf的监控目标会随之调换
 
 #### 3. 工作方式(8)
 
@@ -510,6 +535,7 @@ daemonize yes
 logfile "6379.log"
 dbfilename "dump-6379.rdb"
 dir "/var/redis/data/"
+
 # sentinel_6380.conf 
 port 6380
 daemonize yes
@@ -517,6 +543,7 @@ logfile "6380.log"
 dbfilename "dump-6380.rdb"
 dir "/var/redis/data/"
 slaveof 127.0.0.1 6379
+
 # sentinel_6381.conf 
 port 6381
 daemonize yes
@@ -544,15 +571,19 @@ redis-server 6381.conf
 port 26379  
 dir /var/redis/data/
 logfile "26379.log"
+
 # 当前Sentinel节点监控 127.0.0.1:6379 这个主节点
 # 2 代表判断主节点失败至少需要 2 个Sentinel节点节点同意
 # mymaster 是主节点的别名
 sentinel monitor 127.0.0.1 6379 2
+
 # 每个Sentinel节点都要定期 PING 命令来判断 Redis 数据节点和其余Sentinel节点是否可达，如果超30000毫秒30s且没有回复，则判定不可达
 sentinel down-after-milliseconds mymaster 30000
+
 # 当Sentinel节点集合对主节点故障判定达成一致时，Sentinel领导者节点会做故障转移操作，选出新的主节点，
 # 原来的从节点会向新的主节点发起复制操作，限制每次向新的主节点发起复制操作的从节点个数为1
 sentinel parallel-syncs mymaster 1
+
 # 故障转移超时时间为180000毫秒，3分钟
 sentinel failover-timeout mymaster 180000
 #加一个后台运行
@@ -599,11 +630,11 @@ redis-cli -p 6381 info replication
 
 #### 1. 简介
 
-1.  redis官方生成可以达到 10万/每秒,每秒执行10万条命令
-2.  一台服务器内存正常是16~256G，假如你的业务需要500G内存
+1.  redis官方生成可以达到 `10万/s`,每秒执行10万条命令
+2.  一台服务器内存正常是`16~256G`，假如你的业务需要500G内存
 3.  数据量过大
     -   一台服务器内存正常是16~256G，假如你的业务需要500G内存，新浪微博作为世界上最大的redis存储，就超过1TB的数据，去哪买这么大的内存条？
-    -   各大公司有自己的解决方案，推出各自的集群功能，核心思想都是将数据分片（sharding）存储在多个redis实例中，每一片就是一个redis实例。
+    -   各大公司有自己的解决方案，推出各自的集群功能，**核心思想都是将数据分片（sharding）**存储在多个redis实例中，每一片就是一个redis实例。
 4.  各大企业集群方案：
     -   twemproxy由Twitter开源
     -   Codis由豌豆荚开发，基于GO和C开发
@@ -611,7 +642,7 @@ redis-cli -p 6381 info replication
 
 #### 2. 客户端分片
 
--   redis3.0集群采用P2P模式，完全去中心化，将redis所有的key分成了**16384**个槽位，每个redis实例负责一部分slot，集群中的所有信息通过节点数据交换而更新。
+-   **redis3.0集群采用P2P模式**，完全去中心化，将redis所有的key分成了**16384**个槽位，每个redis实例负责一部分slot，集群中的所有信息通过节点数据交换而更新。
 -   redis实例集群主要思想是将redis数据的key进行散列，通过hash函数特定的key会映射到指定的redis节点上
 
 #### 3. 数据分布理论
@@ -640,12 +671,12 @@ redis-cli -p 6381 info replication
 -   一致性哈希
 
     -   客户端进行分片，哈希+顺时针取余
--   虚拟槽分区
-    1.  Redis Cluster`采用虚拟槽分区
+-   **虚拟槽分区**
+    1.  Redis Cluster采用虚拟槽分区
     2.  虚拟槽分区巧妙地使用了哈希空间，使用分散度良好的哈希函数把所有的数据映射到一个固定范围内的整数集合，整数定义为槽（slot）。
-    3.  Redis Cluster槽的范围是0 ～ 16383。
+    3.  Redis Cluster槽的范围是`0 ～ 16383`。
     4.  槽是集群内数据管理和迁移的基本单位。采用大范围的槽的主要目的是为了方便数据的拆分和集群的扩展，
-    5.  每个节点负责一定数量的槽。
+    5.  **每个节点负责一定数量的槽**。
 
 ### 1. 搭建redis cluster
 
@@ -660,6 +691,7 @@ daemonize yes
 dir "/opt/redis/data"
 logfile "7000.log"
 dbfilename "dump-7000.rdb"
+
 cluster-enabled yes   					#开启集群模式
 cluster-config-file nodes-7000.conf		#集群内部的配置文件
 # redis cluster需要16384个slot都正常的时候才能对外提供服务，换句话说，只要任何一个slot异常那么整个cluster不对外提供服务。 因此生产环境一般为no
@@ -720,6 +752,12 @@ find / -name redis-trib.rb
 redis-cli -c -p 7000
 set name 'xiake'
 ```
+
+-   如果执行时报如下错误：
+
+    `[ERR] Node XXXXXX is not empty. Either the node already knows other nodes (check with CLUSTER NODES) or contains some key in database 0`
+
+-   **解决方法**：是删除生成的配置文件`nodes.conf`，如果不行则说明现在创建的结点包括了旧集群的结点信息，需要删除redis的持久化文件后再重启redis，比如：`appendonly.aof、dump.rdb`
 
 # python操作redis
 

@@ -44,7 +44,7 @@
     -   在大多使用场景下，**数据处理的顺序都很重要**。
     -   大部分消息队列本来就是排序的，并且能保证数据会按照特定的顺序来处理。（Kafka保证一个Partition内的消息的有序性）
 6.  缓冲
-    -   采用了生产者-消费者的设计模式。
+    -   采用了**生产者-消费者的设计模式。**
     -   有助于控制和优化数据流经过系统的速度，**解决生产消息和消费消息的处理速度不一致的情况**。
 7.  异步通信
     -   很多时候，用户不想也不需要立即处理消息。比如发红包，发短信等流程。
@@ -80,6 +80,8 @@ systemctl status rabbitmq-server
 
 ### 1. 创建管理员(7)
 
+-   如果登录不进去，很有可能是Linux 的防火墙的缘故。
+
 ```python
 # 1. 添加用户：henry 密码：123
 rabbitmqctl add_user henry 123
@@ -91,6 +93,7 @@ rabbitmqctl set_user_tags henry administrator
 # 对何种资源具有配置、写、读的权限通过正则表达式来匹配，具体命令如下：
 rabbitmqctl set_permissions [-p <vhostpath>] <user> <conf> <write> <read>
 rabbitmqctl set_permissions -p '/' henry '.*' '.*' '.*'
+rabbitmqctl set_permissions -p 'vhost1' echo '.*' '.*' '.*'
 # 5. 添加web管理页面
 rabbitmq-plugins enable rabbitmq_management
 # 6. 重启
@@ -109,7 +112,7 @@ import pika
 # 创建凭证，使用rabbitmq用户密码登录
 credentials = pika.PlainCredentials("henry","123")
 # 新建连接，这里localhost可以更换为服务器ip
-connection = pika.BlockingConnection(pika.ConnectionParameters('172.16.44.142',credentials=credentials))
+connection = pika.BlockingConnection(pimka.ConnectionParameters('172.16.44.142',credentials=credentials))
 # 创建频道
 channel = connection.channel()
 # 声明一个队列，用于接收消息，队列名字叫 订单
@@ -319,8 +322,8 @@ class FibonacciRpcClient(object):
         # 声明回调队列，再次声明的原因是，服务器和客户端可能先后开启，该声明是幂等的，多次声明，但只生效一次
         #exclusive=True 参数是指只对首次声明它的连接可见
         #exclusive=True 会在连接断开的时候，自动删除
-        result = self.channel.queue_declare(exclusive=True)
-        # 将次队列指定为当前客户端的回调队列
+		result = self.channel.queue_declare(queue='rpc_test')
+        # 将队列指定为当前客户端的回调队列
         self.callback_queue = result.method.queue
         # 客户端订阅回调队列，当回调队列中有响应时，调用`on_response`方法对响应进行处理;
         self.channel.basic_consume(self.on_response, no_ack=True,
@@ -369,11 +372,11 @@ import pika
 
 credentials = pika.PlainCredentials("henry", "123")
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-    host='172.16.44.142'), credentials=credentials)
+    host='172.16.44.142', credentials=credentials))
 # 建立会话
 channel = connection.channel()
 # 声明RPC请求队列
-channel.queue_declare(queue='test')
+channel.queue_declare(queue='rpc_test')
 # 模拟一个进程，例如切菜师傅，等着洗菜师傅传递数据
 def sum(n):
     n+=100
@@ -404,4 +407,173 @@ print("等待接收rpc请求")
 #开始消费
 channel.start_consuming()
 ```
+
+# RPC
+
+## 1. 环境准备
+
+```shell
+pip install grpcio -i https://pypi.douban.com/simple
+pip install grpcio-tools googleapis-common-protos -i https://pypi.douban.com/simple
+```
+
+-   gRPC由两个部分构成，grpcio 和 gRPC 工具， 后者是编译 protocol buffer 以及提供生成代码的插件。
+
+```shell
+python -m grpc_tools.protoc -I./ --python_out=./ --grpc_python_out=./ ./*.proto
+```
+
+## 2. 使用
+
+### 1. 编写protocol buffer
+
+-   使用 gRPC 首先需要做的是设计 protocol buffer。新建一个 `msg.proto`文件。
+
+```python
+syntax = "proto3";
+
+service MsgService {
+  rpc GetMsg (MsgRequest) returns (MsgResponse){}
+}
+
+message MsgRequest {
+    string name = 1;
+}
+
+message MsgResponse {
+    string msg = 1;
+}
+```
+
+-   以上面的这个消息服务为例，首先是规定语法，这里使用的是 `proto3` 的语法。接着使用 `service` 关键字定义服务，gRPC 提供4种 RPC 类型的服务，这里定义的是第一种单一请求单一回应，类似普通的函数调用，其他的使用到了 `stream` 关键字，将其放在括号里，代表这个数据是流数据。这个以后再来研究，本次先设计一个简单的RPC。
+-   之后定义两个 `message`，一个是请求的结构，一个是回应的结果。 这里表示这个数据结构是字符串，protocol buffer 还可以定义为 int32，int64，double，float 等等。这里赋予的初值可以随便填写，实际使用中，会被赋予新的值。
+
+### 2. 生成接口代码
+
+-   因为之前安装好了一些辅助插件，使用这里直接可以生成。
+
+```bash
+python -m grpc_tools.protoc -I . --pythoout=. --grpc_python_out=. msg.proto
+```
+
+-   这里会生成两个文件，`msg_pb2.py` 和 `msg_pb2_grpc.py`。这两个文件是为后续的服务端和客户端所用。前者是定义了一些变量，例如 `_MSGREQUEST` 中就包含了请求函数的名字，可接受的变量，实际上还是 `msg.proto` 里定义的东西。
+
+### 3. 创建服务端
+
+-   首先需要导入 RPC 必备的包，以及刚才生成的两个文件。
+
+```python
+import grpc
+import msg_pb2
+import msg_pb2_grpc
+```
+
+-   因为 RPC 应该长时间运行，考虑到性能，还需要用到并发的库。
+
+```python
+from concurrent import futures
+import time
+
+_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+```
+
+-   在 Server 中，主要是实现服务，按照 `msg.proto` 定义的，这里需要写一个服务类 `MsgServicer`，这个类需要实现之前定义的 `GetMsg`。 
+
+```python
+class MsgServicer(msg_pb2_grpc.MsgServiceServicer):
+
+    def GetMsg(self, request, context):
+        print("Received name: %s" % request.name)
+        return msg_pb2.MsgResponse(msg='Hello, %s!' % request.name)
+```
+
+-   GetMsg 接收到的请求是在 `request` 中，`msg.proto` 中定义的 `name` 就是 `request.name`，接着在 GetMsg 中设计 `msg.proto` 中定义的 `MsgResponse`。
+-   之后实现启动服务的部分即可。
+
+```python
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    msg_pb2_grpc.add_MsgServiceServicer_to_server(MsgServicer(), server)
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    try:
+        while True:
+            time.sleep(_ONE_DAY_IN_SECONDS)
+    except KeyboardInterrupt:
+        server.stop(0)
+```
+
+-   通过并发库，将服务端放到多进程里运行。
+-   完整 `msg_server.py` 代码如下
+
+```python
+import grpc
+import msg_pb2
+import msg_pb2_grpc
+
+from concurrent import futures
+import time
+
+_ONE_DAY_IN_SECONDS = 60 * 60 * 24
+
+
+class MsgServicer(msg_pb2_grpc.MsgServiceServicer):
+
+    def GetMsg(self, request, context):
+        print("Received name: %s" % request.name)
+        return msg_pb2.MsgResponse(msg='Hello, %s!' % request.name)
+
+
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    msg_pb2_grpc.add_MsgServiceServicer_to_server(MsgServicer(), server)
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    try:
+        while True:
+            time.sleep(_ONE_DAY_IN_SECONDS)
+    except KeyboardInterrupt:
+        server.stop(0)
+
+if __name__ == '__main__':
+    serve()
+```
+
+### 4. 创建客户端
+
+客户端相对简单一些，这里我写了一个简单的客户端。
+
+```python
+import grpc
+
+import msg_pb2
+import msg_pb2_grpc
+
+def run():
+    # NOTE(gRPC Python Team): .close() is possible on a channel and should be
+    # used in circumstances in which the with statement does not fit the needs
+    # of the code.
+    with grpc.insecure_channel('localhost:50051') as channel:
+        stub = msg_pb2_grpc.MsgServiceStub(channel)
+        response = stub.GetMsg(msg_pb2.MsgRequest(name='world'))
+    print("Client received: " + response.msg)
+
+
+if __name__ == '__main__':
+    run()
+```
+
+-   使用 `grpc.insecure_channel('localhost:50051')` 进行连接 服务端， 接着在这个 `channel` 上创建 `stub`， 在 `msg_pb2_grpc` 里可以找到 `MsgServiceStub` 这个类相关信息。这个 `stub` 可以调用远程的 `GetMsg` 函数。 `MsgRequest` 中的 `name` 即 `msg.proto` 中定义的数据。在回应里可以得到 `msg.proto` 中定义的 `msg`。
+
+### 5. 运行
+
+-   首先运行 `python msg_server.py` 启动服务端，接着运行 `python msg_client.py` 机会看到客户端接收到了服务端传来的消息。以上就是一个简单的 RPC 的使用。
+
+
+
+
+
+
+
+
 

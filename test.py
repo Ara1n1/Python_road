@@ -1,5 +1,29 @@
-for i in range(1, 5):
-    print({item[i]: None for item in [{1: 1}, {2: 2}, {3: 3}, {4: 4}]})
+from __future__ import unicode_literals
+
+print('\'xxx\' is unicode?', isinstance('xxx', unicode))
+print('u\'xxx\' is unicode?', isinstance(u'xxx', unicode))
+print('\'xxx\' is str?', isinstance('xxx', str))
+print('b\'xxx\' is str?', isinstance(b'xxx', str))
+# f = lambda n: f(n - 1) * n if n >= 2 else 1
+# print(f(5))
+
+# def func1():
+#     print('xxxx')
+#     yield 1
+#
+#
+# def func2():
+#     g = func1()
+#     print(next(g))
+#     try:
+#         ret = next(g)
+#     except StopIteration as e:
+#         print(e.value)
+#
+# func2()
+
+# for i in range(1, 5):
+#     print({item[i]: None for item in [{1: 1}, {2: 2}, {3: 3}, {4: 4}]})
 
 # def outer(data):
 #     def inner():s

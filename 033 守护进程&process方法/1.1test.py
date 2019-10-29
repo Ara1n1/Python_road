@@ -14,20 +14,21 @@
 #     p.start()
 #     time.sleep(2)
 
-# from threading import Thread
-# from multiprocessing import Process
-# import time
-#
-#
-# def _wait():
-#     time.sleep(3)
-#
-#
-# # flag a
-# start = time.time()
-# # t = Thread(target=_wait, daemon=True)
+from threading import Thread
+from multiprocessing import Process
+import time
+
+
+def _wait():
+    time.sleep(3)
+
+
+# flag a
+start = time.time()
+t = Thread(target=_wait, daemon=True)
+
 # t = Process(target=_wait, daemon=True)
-# t.start()
-# # flag b
-# endtime = time.time()
-# print(endtime - start)
+t.start()
+# flag b
+endtime = time.time()
+print(endtime - start)

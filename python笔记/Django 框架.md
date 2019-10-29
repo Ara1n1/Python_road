@@ -5076,9 +5076,9 @@ print(ret)
 # 通过connection执行
 from django.db import connection, connections
 # 使用默认数据库
-cursor = connectsion.sursor()
+cursor = connection.cursor()
 # 指定 db2 数据库
-cursor = connectsions['db2'].sursor()
+cursor = connectsions['db2'].cursor()
 cursor.execute(r"select * from main.app01_classes where id=%s", [1])
 row = cursor.fetchall()
 print(row)

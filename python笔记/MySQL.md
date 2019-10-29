@@ -106,7 +106,7 @@ sudo mysql.server start/stop/restart
 
 - 在安装数据库之后，有一个最高权限的用户root
 - mysql server端的ip 用户名/密码
-- Mysql -h192.168.12.87 -uroot -p123
+- mysql -h192.168.12.87 -uroot -p123
 
 #### Note1
 
@@ -127,7 +127,7 @@ sudo mysql.server start/stop/restart
   - SQL : 结构化查询语言(**Structured Query Language)**简称SQL(发音：/ˈes kjuː ˈel/ "S-Q-L")，是一种特殊目的的编程语言，是一种数据库查询和程序设计语言，用于存取数据以及查询、更新和管理关系数据库系统。
   - SQL语言主要用于存取数据、查询数据、更新数据和管理关系数据库系统，SQL语言由IBM开发。**SQL语言分为3种类型**：
 
-  1. **DDL**语句 数据库定义语言：数据库，表，视图，索引，存储规程
+  1. **DDL**语句 数据库定义语言：数据库，表，视图，索引，存储过s s程
   2. **DML**语句 数据库操纵语言：插入数据insert，delete，update，alter
   3. **DCL**语句 数据库控制语言：创建用户。grant    revoke 取消授权
 
@@ -137,7 +137,7 @@ select user();
 # 设置密码，password 表示密文存储
 set password for root@localhost = password('123');
 # 创建用户
-create user '用户名'@'网段.%' identified by '密码';
+create user 用户名@'网段.%' identified by '密码';
 # 查看用户状态，用户信息都存储在mysql中的user表中
 select host,user from mysql.user;
 # 查看当前库
@@ -145,22 +145,23 @@ show databases;
 # 创建文件夹henry
 create database henry；
 # 查看指定用户权限
-show grants for '用户名'(@'网段.%');
+show grants for 用户名(@'网段.%');
+show grants for 用户名;
 # 授权 * 表示所有
-grant all(select/insert) on henry.* to '用户名'@'ip网段.%';
+grant all(select/insert) on henry.* to 用户名@'ip网段.%';
 # 设置立即生效
 flush privileges
 # 创建账号并授权,必须有密码
-grant all on 库名.* to '用户名'@'%' identified by '123';
+grant all on 库名.* to 用户名@'%' identified by  '123';
 #select, insert, update, delete, create, drop, index, alter, grant, references, reload, shutdown, process, file等14个权限
 
 # 取消用户权限
-revoke all on test.* from 'henry'@'%';
+revoke all on test.* from henry@'%';
 # 删除用户
 delete from mysql.user where host='192.168.12.%' and user='test';
-drop user 'test'@'192.168.12
+drop user test@'192.168.12
 # 修改指定用户密码
-update mysql.user set password=password('新密码') where User='test' and Host='%';
+update mysql.user set password=pssword('新密码') where User='test' and Host='%';
 ```
 
 - 库的操作
