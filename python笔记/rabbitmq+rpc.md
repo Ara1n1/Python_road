@@ -568,12 +568,3 @@ if __name__ == '__main__':
 ### 5. 运行
 
 -   首先运行 `python msg_server.py` 启动服务端，接着运行 `python msg_client.py` 机会看到客户端接收到了服务端传来的消息。以上就是一个简单的 RPC 的使用。
-
-
-
-
-
-
-
-
-

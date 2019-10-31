@@ -9,6 +9,7 @@ class Users(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(32), nullable=False)
+    age = db.Column(db.INT, default=18)
 
 
 if __name__ == '__main__':

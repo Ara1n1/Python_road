@@ -1,3 +1,5 @@
+
+
 # 1. Flask基础
 
 -   **flask理念**：一切从简为服务器减轻压力
@@ -826,7 +828,7 @@ __slots__ = ('__stroage__', '__ident_func__')
 ![7 LocalProxy](/Users/henry/Documents/截图/Py截图/Flask 请求上文/7 LocalProxy.png)
 
 -   当请求处理结束，返回 reponse 给客户端后，Flask通过 信号机制调用`flask.reqeust_tearing_down`和`flask.appcontext_tearing_down`等信号，把当前的request数据销毁，整个请求结束。
-    
+  
 
 ## 6. Flask 全局变量
 
@@ -1129,6 +1131,41 @@ pip install sqlalchemy
 
 ## 2. 使用
 
+### 0. 基本流程
+
+#### 1. models类的创建(6)
+
+1.  声明一个基类：`from sqlalchemy.ext.declarative import declarative_base`
+
+2.  实例化基类：`BaseModel = declarative_base()`
+
+3.  创建model类：
+
+    ```python
+    from sqlalchemy import INT, String, Column
+    class Test(BaseModel):
+        __tablename__ = 'test'
+        id = Column(INT, primary_key=True)
+        name = Column(String(32), nullable=False, index=True, unique=True)
+    ```
+
+4.  创建数据库引擎：`from sqlalchemy.engine import create_engine`
+
+5.  连接数据库：
+
+    -   `engine = create_engine('mysql+pymysql://root:root@127.0.0.1:3306/sqlalchemy?charset=utf8')`
+
+6.  创建表：`BaseModel.metadata.create_all(engine)`
+
+#### 2. 操作数据库(4)
+
+1.  创建查询窗口：`from sqlalchemy.orm import sessionmaker`
+2.  选择数据库：`db_select = sessionmaker(engine)`
+3.  打开查询窗口：`db_session = db_select()`
+4.  CRUD操作：本质是ORM操作
+    -   `db_session.add(User('henry')) / commit() / close()`
+    -   `db_session.add_all(user_list)`
+
 ### 1. 约束
 
 1.  primary_key
@@ -1143,7 +1180,7 @@ pip install sqlalchemy
 -    CHAR、 NCHAR、VARCHAR、 NVARCHAR、String：都是字符串
 
 ```python
-# 声明一个基类
+# 声明一个基类，相当于 models 类
 from sqlalchemy.ext.declarative import declarative_base
 BaseModel = declarative_base()
 
@@ -1244,7 +1281,9 @@ engine = create_engine('mysql+pymysql://root:root@127.0.0.1:3306/sqlalchemy?chrs
 BaseModel = declarative_base()
 ```
 
--   一对多的关系
+-   **一对多的关系**：外键
+    -   ` sch_id = Column(Integer, ForeignKey('shool.id'))` 
+    -   `stu2sch = relationship('School', backref='sch2stu')`
 
 ```python
 # ORM 精髓, relationship 所在的类是正向类
@@ -1311,6 +1350,8 @@ print([(sch.name, [stu.name for stu in sch.sch2stu]) for sch in res])
 
 ## 4. ManyToMany
 
+-   获取到多个对象类型为：`<class 'sqlalchemy.orm.collections.InstrumentedList'>`
+
 ### 1. 创建表
 
 ```python
@@ -1349,7 +1390,7 @@ BaseModel.metadata.create_all(engine)
 
 ### 2. 操作
 
--   第三张表的数据是自动添加的
+-   **第三张表的数据是自动添加的**
 
 ```python
 from sqlalchemy.orm import sessionmaker
@@ -1369,8 +1410,9 @@ db_sesion.close()
 
 # 反向添加
 b = Boy(name='dean')
-b.byg = [Girl(name='dean1'),
-         Girl(name='dean2')
+b.byg = [
+    Girl(name='dean1'),  
+    Girl(name='dean2')
         ]
 db_sesion.add(b)
 db_session.commit()
@@ -1392,6 +1434,82 @@ res = db_session.query(Boy).all()
 for b in res:
     print(b.name, len(b.byg))
 ```
+
+## 5. 小结
+
+### 1.  filter和filter_by
+
+```python
+query = db_session.query(User)
+# 等于判断
+query.filter(User.name =='test') 								# equals
+query.filter(User.name !='test') 								# not equals
+# 模糊匹配
+query.filter(User.name.like('%es%')) 							# like 模糊匹配
+# 成员判断
+query.filter(User.name.in_(['test','henry', 'echo'])) 			# in 成员判断
+query.filter(~User.name.in_(['test','henry', 'echo']))			# not IN
+query.filter(User.name.in_(session.query(User.name).filter(User.name.like('%ed%'))	# IN
+# None判断
+query.filter(User.name ==None)									# is None
+query.filter(User.name !=None)									# not None
+
+# 多条件判断，逻辑与         
+from sqlalchemy import and_
+query.filter(and_(User.name =='test', User.age ==18)) 			# and
+query.filter(User.name =='test', User.age ==18) 				# and
+query.filter(User.name =='test').filter(User.age ==18)			# and
+# 逻辑或
+from sqlalchemy import or_
+query.filter(or_(User.name =='test', User.age ==18)) 			# or
+# 匹配
+query.filter(User.name.match('test'))							# match
+```
+
+### 2. 查询的方式
+
+-   `func`为内置函数
+
+```python
+from sqlalchemy import func
+# sql过滤
+print(session.query(User).filter("id>:id").params(id=1).all())
+
+# 关联查询 
+print(session.query(User, Address).filter(User.id == Address.user_id).all())
+print(session.query(User).join(User.addresses).all())
+print(session.query(User).outerjoin(User.addresses).all())
+
+# 聚合查询
+print(session.query(User.name, func.count('*').label("user_count")).group_by(User.name).all())
+print(session.query(User.name, func.sum(User.id).label("user_id_sum")).group_by(User.name).all())
+
+# 子查询
+stmt = session.query(Address.user_id, func.count('*').label("address_count")).group_by(Address.user_id).subquery()
+print(session.query(User, stmt.c.address_count).outerjoin((stmt, User.id == stmt.c.user_id)).order_by(User.id).all())
+
+# exists
+print(session.query(User).filter(exists().where(Address.user_id == User.id)))
+print(session.query(User).filter(User.addresses.any()))
+
+# count distinct "name" values
+from sqlalchemy import distinct
+session.query(func.count(distinct(User.name)))
+```
+
+## 6. 执行原生SQL
+
+```python
+"""执行原生SQL"""
+from sqlalchemy import create_engine
+db = create_engine('mysql+pymysql://root:root@localhost:3306/sqlalchemy?charset=utf8')
+conn = db.connect()
+conn.execute("insert into user(name, age) values('iris', 18)")
+res = conn.execute('select * from user')
+print(list(res))
+```
+
+
 
 # 7.Flask-SQLAlchemy
 
@@ -1478,12 +1596,43 @@ def user_list():
 ### 2. manager.py
 
 ```python
-from app01 import create_app
-from flask_script import Manager
+from app01 import create_appf
 app = create_app()
 if __name__ == '__main__':
     app.run()
 ```
+
+### 3. 使用流程
+
+#### 1. 实例化db
+
+`db = SQLAlchemy()`
+
+#### 2. app配置
+
+```python
+app.config['DEBUG'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root@127.0.0.1:3306/sqlalchemy1?charset=utf8'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# 注册蓝图
+app.register_blueprint(user.user)
+```
+
+#### 3. 初始化db
+
+`db.init_app(app=app)`
+
+#### 4. Migrate
+
+`Migrate(app, db)`
+
+#### 5. Manager
+
+-   `manager = Manager(app)`
+-   `manager.add_command('db', MigrateCommand)`
+-   ``
+
+
 
 ## 3. 终端启动
 
@@ -1557,7 +1706,7 @@ if __name__ == '__main__':
 -   终端使用
 
 ```python
-# 初始化数据库
+# 初始化数据库，会清空数据库
 python manager.py db init
 # 相当于Django的makemigrations
 python manager.py db migrate

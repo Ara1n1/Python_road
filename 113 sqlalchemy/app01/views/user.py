@@ -5,9 +5,9 @@ from app01.models import db, Users
 user = Blueprint('user', __name__)
 
 
-@user.route('/reg/<username>')
-def reg(username):
-    u = Users(name=username)
+@user.route('/reg/<username>/<age>/')
+def reg(username, age):
+    u = Users(name=username, age=age)
     db.session.add(u)
     db.session.commit()
     return 'reg 200 OK!'

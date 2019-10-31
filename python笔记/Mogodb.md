@@ -314,4 +314,3 @@ res = MongoDB.Users.find({}).sort('age', DESCENDING)
 res = MongoDB.Users.find({}).sort({'age':-1}) # -1会报错
 for row in res: print(row)
 ```
-

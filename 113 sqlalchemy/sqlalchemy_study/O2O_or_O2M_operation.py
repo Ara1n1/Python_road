@@ -1,6 +1,5 @@
+from O2O_or_O2M import School, engine, Student
 from sqlalchemy.orm import sessionmaker
-
-from sqlalchemy_study.O2O_or_O2M import School, engine, Student
 
 select_db = sessionmaker(engine)
 db_session = select_db()
@@ -23,6 +22,6 @@ db_session = select_db()
 # print([(stu.name, stu.stu2sch.name) for stu in res])
 
 # 反向查询
-res = db_session.query(School).all()
-print([(sch.name, len(sch.sch2stu)) for sch in res])
-print([(sch.name, [stu.name for stu in sch.sch2stu]) for sch in res])
+# res = db_session.query(School).all()
+# print([(sch.name, len(sch.sch2stu)) for sch in res])
+# print([(sch.name, [stu.name for stu in sch.sch2stu]) for sch in res])

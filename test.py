@@ -1,9 +1,20 @@
-from __future__ import unicode_literals
+def func(n):
+    if n == 1 or n == 2:
+        return n
+    if n == 3:
+        return 4
 
-print('\'xxx\' is unicode?', isinstance('xxx', unicode))
-print('u\'xxx\' is unicode?', isinstance(u'xxx', unicode))
-print('\'xxx\' is str?', isinstance('xxx', str))
-print('b\'xxx\' is str?', isinstance(b'xxx', str))
+    return func(n - 1) + func(n - 2) + func(n - 3)
+
+
+print(func(10))
+
+# from __future__ import unicode_literals
+#
+# print('\'xxx\' is unicode?', isinstance('xxx', unicode))
+# print('u\'xxx\' is unicode?', isinstance(u'xxx', unicode))
+# print('\'xxx\' is str?', isinstance('xxx', str))
+# print('b\'xxx\' is str?', isinstance(b'xxx', str))
 # f = lambda n: f(n - 1) * n if n >= 2 else 1
 # print(f(5))
 
