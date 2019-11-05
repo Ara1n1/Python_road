@@ -139,15 +139,15 @@ http {
         }
 	}
 
-# 虚拟主机2 
-server {
-		listen       80;
-		server_name  www.henry.com;
-		location / {
-			root   /opt/henry/;
-			index  index.html index.htm;
-		}
-	}
+    # 虚拟主机2 
+    server {
+            listen       80;
+            server_name  www.henry.com;
+            location / {
+                root   /opt/henry/;
+                index  index.html index.htm;
+            }
+        }
 }
 ```
 
@@ -377,6 +377,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
 	os.path.join(BASE_DIR, 'static')
 ]
+
 # 执行命令,收集django的所有静态文件,系统会自动创建'/opt/static'  这个文件夹
 python3 manage.py collectstatic
 ```
@@ -391,7 +392,7 @@ location / {
     uwsgi_pass 0.0.0.0:8000;
 }
        # 添加一个location,针对nginx的url进行匹配处理
-       # 当请求时 www.oldchouhuo.com/static/.....  这样的url的时候,nginx进行别名修改,去/opt/s21static底下去寻找资源文件                                                                                                                          
+       # 当请求时 www.test.com/static/.....  这样的url的时候,nginx进行别名修改,去/opt/s21static底下去寻找资源文件                                                                                                                          
 location  /static {
 	alias /opt/static;
 }

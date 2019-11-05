@@ -1133,13 +1133,14 @@ pip install sqlalchemy
 
 ### 0. 基本流程
 
-#### 1. models类的创建(6)
+#### 1. models类的创建(4)
 
-1.  声明一个基类：`from sqlalchemy.ext.declarative import declarative_base`
+1.  声明一个基类：
 
-2.  实例化基类：`BaseModel = declarative_base()`
+    -   `from sqlalchemy.ext.declarative import declarative_base`
+    -   `BaseModel = declarative_base()`
 
-3.  创建model类：
+2.  创建model类：
 
     ```python
     from sqlalchemy import INT, String, Column
@@ -1149,13 +1150,12 @@ pip install sqlalchemy
         name = Column(String(32), nullable=False, index=True, unique=True)
     ```
 
-4.  创建数据库引擎：`from sqlalchemy.engine import create_engine`
+3.  创建数据库引擎
 
-5.  连接数据库：
-
+    -   `from sqlalchemy.engine import create_engine`
     -   `engine = create_engine('mysql+pymysql://root:root@127.0.0.1:3306/sqlalchemy?charset=utf8')`
 
-6.  创建表：`BaseModel.metadata.create_all(engine)`
+4.  创建表：`BaseModel.metadata.create_all(engine)`
 
 #### 2. 操作数据库(4)
 
@@ -1168,11 +1168,12 @@ pip install sqlalchemy
 
 ### 1. 约束
 
-1.  primary_key
-2.  auto_increment
-3.  nullable
-4.  index
-5.  unique
+1.  primary_key：如果设为 True，这列就是表的主键
+3.  nullable：如果设为 True，这列允许使用空值；如果设为 False，这列不允许使用空值
+4.  index：如果设为 True，为这列创建索引，提升查询效率
+5.  unique：如果设为 True，这列不允许出现重复的值
+5.  default：为这列定义默认值
+6.  autoincrement：自增
 
 ### 2. 数据类型
 
@@ -1201,7 +1202,9 @@ engine = create_engine('mysql+pymysql://root:root@127.0.0.1:3306/sqlalchemy?char
 BaseModel.metadata.create_all(engine)
 ```
 
--   增加数据
+### 3. CURD操作
+
+#### 0. 准备工作
 
 ```python
 # 1. 选择数据库
@@ -1218,7 +1221,9 @@ select_db = sessionmaker(engine)
 db_session = select_db()
 ```
 
--   插入、批量插入，add、add_all
+#### 1. 插入、批量插入
+
+-   add(对象)、add_all(对象list)
 
 ```python
 # 1. 写入sql语句
@@ -1233,7 +1238,7 @@ db_session.commit()
 db_session.close()
 ```
 
--   查询，query
+#### 2. 查询，query()
 
 ```python
 # 查询所有数据
@@ -1250,7 +1255,7 @@ res = db_session.query(User).filter_by(id=3, name='123').all()
 print(res[0].id, res[0].name)
 ```
 
--   修改，update
+#### 3. 修改，update()
 
 ```python
 # 修改数据
@@ -1259,7 +1264,7 @@ db_session.commit()
 db_session.close()
 ```
 
--   删除数据，delete
+#### 4. 删除数据，delete()
 
 ```python
 # 删除数据
@@ -1435,35 +1440,98 @@ for b in res:
     print(b.name, len(b.byg))
 ```
 
-## 5. 小结
+## 5. relationship
+
+### 1. 常用参数
+
+1.  **backref**：在关系的另一个模型中添加的反向引用，即反向查询时使用的名称。
+2.  primaryjoin：明确指定两个模型之间使用的联结条件，只在模棱两可的关系中需要指定。
+3.  **foreign_keys**：接收一个列表，大多数情况下,` db.relationship()` 都能自行找到关系中的外键, 但有时却无法决定把哪一列作为外键，此时可以使用foreign_keys来明确指定哪一个作为外键。
+4.  lazy：指定如何加载相关数据，可选值：
+    1.  select：首次访问时按需加载
+    2.  immediate：源对象加载后就加载
+    3.  joined：加载数据，但使用联结
+    4.  subquery：立即加载，但使用子查询
+    5.  noload：永不加载
+    6.  dynamic：不加载数据，但提供加载数据的查询
+5.  uselist：如果设为False，不适用列表，而使用标量值。
+6.  order_by：指定关系中数据的排序方式。
+7.  **secondary**：指定多对多关系中关系表的名字。
+8.  secondaryjoin：SQLAlchemy无法自行决定时，指定多对多关系中的二级联结条件。
+
+## 6. 小结
+
+### 0. 常用的方法
+
+#### 1. 查询过滤器
+
+| 过滤器      | 说明                                                   |
+| :---------- | :----------------------------------------------------- |
+| filter()    | 把过滤器添加到原查询上, 返回一个新查询                 |
+| filter_by() | 把等值过滤器添加到原查询上, 返回一个新查询             |
+| limit()     | 使用是zing的值限制原查询返回的结果数量, 返回一个新查询 |
+| offset()    | 偏移原查询返回的结果, 返回一个新查询                   |
+| order_by()  | 根据指定条件对原查询结果进行排序, 返回一个新查询       |
+| group_by()  | 根据指定条件对原查询结果进行分组, 返回一个新查询       |
+
+#### 2. 查询执行函数
+
+| 方法    | 说明                                            |
+| :------ | :---------------------------------------------- |
+| all()   | 以列表形式返回查询的所有结果                    |
+| first() | 返回查询的第一个结果，如果没有结果，则返回 None |
+| first_or_404() | 返回查询的第一个结果，如果没有结果，则终止请求，返回 404 错误响应|
+| get() | 返回**指定主键对应的行**，如果没有对应的行，则返回 None |
+| get_or_404() | 返回指定主键对应的行，如果没找到指定的主键，则终止请求，返回 404错误响应|
+| count() | 返回查询结果的数量 |
+| paginate()| 返回一个 Paginate 对象，它包含指定范围内的结果 |
 
 ### 1.  filter和filter_by
 
+#### 1.filter_by
+
+-   filter_by用于查询简单的列名，不支持比较运算符。
+
+#### 2. filter
+
+-   比filter_by的功能更强大，支持比较运算符，支持`or_`、`in_`等语法。
+
+#### 3. 区别
+
+|    模块     |          语法           | ><（大于和小于）查询 | `and_`和`or_`查询 |
+| :---------: | :---------------------: | :------------------: | :---------------: |
+| filter_by() |  直接用属性名，比较用=  |        不支持        |      不支持       |
+|  filter()   | 用类名.属性名，比较用== |         支持         |       支持        |
+
 ```python
-query = db_session.query(User)
+query = db_session.query(Girl)
 # 等于判断
-query.filter(User.name =='test') 								# equals
-query.filter(User.name !='test') 								# not equals
+res = query.filter(Girl.name == 'echo').all()
+res = query.filter(Girl.name != 'echo').all()
+print([i.name for i in res])
+
 # 模糊匹配
-query.filter(User.name.like('%es%')) 							# like 模糊匹配
-# 成员判断
-query.filter(User.name.in_(['test','henry', 'echo'])) 			# in 成员判断
-query.filter(~User.name.in_(['test','henry', 'echo']))			# not IN
-query.filter(User.name.in_(session.query(User.name).filter(User.name.like('%ed%'))	# IN
-# None判断
-query.filter(User.name ==None)									# is None
-query.filter(User.name !=None)									# not None
+res = query.filter(Girl.name.like('%i%')).all()
+print([i.name for i in res])
+
+# 成员判断 .in_
+res = query.filter(Girl.name.in_(['echo', 'diane', 'haha']))
+res = query.filter(~Girl.name.in_(['echo', 'diane', 'haha']))
+print([i.name for i in res])
+
+# None判断，== !=
+res = query.filter(Girl.name == None).all()
+res = query.filter(Girl.name != None).all()
+print([i.name for i in res])
 
 # 多条件判断，逻辑与         
 from sqlalchemy import and_
-query.filter(and_(User.name =='test', User.age ==18)) 			# and
-query.filter(User.name =='test', User.age ==18) 				# and
-query.filter(User.name =='test').filter(User.age ==18)			# and
+res = query.filter(and_(Girl.name.like('%i%'), Girl.name == 'diane'))
+res = query.filter(Girl.name.like('%i%'), Girl.name == 'diane')
+res = query.filter(Girl.name.like('%i%')).filter( Girl.name == 'diane')
 # 逻辑或
 from sqlalchemy import or_
-query.filter(or_(User.name =='test', User.age ==18)) 			# or
-# 匹配
-query.filter(User.name.match('test'))							# match
+res = query.filter(or_(Girl.name.like('%i%'), Girl.name == 'diane'))
 ```
 
 ### 2. 查询的方式
@@ -1472,11 +1540,15 @@ query.filter(User.name.match('test'))							# match
 
 ```python
 from sqlalchemy import func
-# sql过滤
-print(session.query(User).filter("id>:id").params(id=1).all())
+
+# 排序
+res = query.filter().order_by(Girl.id.desc()).all()				# 升序，默认
+res = query.filter().order_by(Girl.id.desc()).all()				# 降序
 
 # 关联查询 
-print(session.query(User, Address).filter(User.id == Address.user_id).all())
+res = db_session.query(Girl, Boy).filter(Girl.id == Boy.id).all()
+print([[(j.id, j.name) for j in i] for i in res])
+
 print(session.query(User).join(User.addresses).all())
 print(session.query(User).outerjoin(User.addresses).all())
 
@@ -1497,7 +1569,7 @@ from sqlalchemy import distinct
 session.query(func.count(distinct(User.name)))
 ```
 
-## 6. 执行原生SQL
+## 7. 执行原生SQL
 
 ```python
 """执行原生SQL"""
@@ -1508,8 +1580,6 @@ conn.execute("insert into user(name, age) values('iris', 18)")
 res = conn.execute('select * from user')
 print(list(res))
 ```
-
-
 
 # 7.Flask-SQLAlchemy
 
@@ -1596,7 +1666,7 @@ def user_list():
 ### 2. manager.py
 
 ```python
-from app01 import create_appf
+from app01 import create_app
 app = create_app()
 if __name__ == '__main__':
     app.run()
@@ -1622,17 +1692,28 @@ app.register_blueprint(user.user)
 
 `db.init_app(app=app)`
 
-#### 4. Migrate
+#### 4. Migrate & Manager
 
-`Migrate(app, db)`
-
-#### 5. Manager
-
+-   `Migrate(app, db)`
 -   `manager = Manager(app)`
--   `manager.add_command('db', MigrateCommand)`
--   ``
+-   传参时使用：`manager.add_command('db', MigrateCommand)`
 
+#### 5. 小结
 
+```python
+db.create_all()								# 创建继承自db.Model的模型类
+db.drop_all()								# 删除数据库中所有的表（继承db.Model）
+db.session.add(obj)							# 添加单个对象
+db.session.add_all([obj1,obj2]) 			# 增加多个
+db.session.delete(obj)						# 删除单个对象
+db.session.commit()							# 提交会话
+db.session.rollback()						# 回滚
+db.session.remove()							# 移除会话
+# 查询操作
+model类.query 								# 得到了该模型的所有结果集
+model类.query.过滤器 						  # 得到的又是一个新的结果集
+model类.query.过滤器.执行器					# 取出集里面的数据
+```
 
 ## 3. 终端启动
 
@@ -1653,6 +1734,7 @@ app = create_app()
 manager = Manager(app)
 """
 # 进阶
+manager.add_command('db', MigrateCommand)
 @manager.command
 def func1(args):
     print(args)
@@ -1697,7 +1779,7 @@ from flask_migrate import Migrate, MigrateCommand
 app = create_app()
 Migrate(app, db)
 manager = Manager(app)
-manager.add_command('db',MigrateCommand)
+manager.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
     manager.run()

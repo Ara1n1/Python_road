@@ -153,9 +153,11 @@ pip install django-ckeditor
 1. 注册 ckedior app
 INSTALLED_APPS = [
   	'ckeditor',
-		'ckeditor_uploader',
+	'ckeditor_uploader',
 ]
 2. 配置文件上传路径
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CKEDITOR_UPLOAD_PATH = 'ckeditor/'
 ```
 
@@ -176,10 +178,11 @@ class ArticleDetail(models.Model):
 
 ```python
 from ckeditor_uploader import views
+from django.views.static import serve
 urlpatterns = [
   	url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}, name='img'),
   	url(r'^ckeditor/upload/', views.upload),
-		url(r'^ckeditor/', include('ckeditor_uploader.urls')),
+	url(r'^ckeditor/', include('ckeditor_uploader.urls')),
 ]
 ```
 

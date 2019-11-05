@@ -19,6 +19,7 @@ select course_id from score where student_id = 1;
 select distinct student_id from score where course_id in(
 	select course_id from score where student_id = 1)
 	and student_id !=1;
+	
 select student_id,sname from student right join(select distinct student_id from score where course_id in(
 	select course_id from score where student_id = 1)
 	and student_id !=1) as t1 on t1.student_id = student.sid;
@@ -147,6 +148,10 @@ select course_id,(select concat(student_id,':',num) from score as s1 where s1.co
 	on t1.course_id = t2.course_id;
 
 22、查询没学过“张磊老师”讲授的任一门课程的学生姓名；
-select cid from teacher inner join course on course.teacher_id = teacher.tid where tname = '张磊老师';
+SELECT DISTINCT sid, sname FROM student RIGHT JOIN 
+	(SELECT student_id FROM score LEFT JOIN 
+		(select cid from teacher inner join course on course.teacher_id = teacher.tid where tname = '张磊老师') 
+		t1 ON course_id=cid WHERE cid is NULL
+	) t2 ON sid = student_id;
 ```
 
