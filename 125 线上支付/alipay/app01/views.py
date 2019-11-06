@@ -45,12 +45,12 @@ def index(request):
 
     # 对购买的数据进行加密
     money = float(request.POST.get('price'))  # 保留俩位小数  前端传回的数据
-    out_trade_no = "x2" + str(time.time())  # 商户订单号   # 订单号可以有多中生成方式，可以百度一下
+    out_trade_no = "x2" + str(time.time())  # 商户订单号，订单号可以有多中生成方式，可以百度一下
 
-    # 1. 在数据库创建一条数据：状态（待支付）
+    # 1. 在数据库创建一条数据：状态（待支付）,           # 传递参数执行支付类里的direct_pay方法，返回签名后的支付参数，
     query_params = alipay.direct_pay(
-        subject="充气式Saber",  # 商品简单描述 这里一般是从前端传过来的数据
-        out_trade_no=out_trade_no,  # 商户订单号  这里一般是从前端传过来的数据
+        subject="测试商品",  # 商品简单描述 这里一般是从前端传过来的数据, 订单名称
+        out_trade_no=out_trade_no,  # 商户订单号  这里一般是从前端传过来的数据，
         total_amount=money,  # 交易金额(单位: 元 保留俩位小数)   这里一般是从前端传过来的数据
     )
     # 拼接url，转到支付宝支付页面
