@@ -1,4 +1,4 @@
-
+·
 
 # 1. Flask基础
 
@@ -695,7 +695,7 @@ Session(app)
 def sets():
   	session['key'] = 'henry'
   	return 'set ok!'
- 
+
 @app.route('/gets')
 def gets():
   	return session.get('key')

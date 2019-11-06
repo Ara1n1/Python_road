@@ -4,25 +4,23 @@
 
 ## 1. 概念
 
-1.  数据默认写入到内存，断电数据会丢失
-2.  redis是内存型数据库
+1.  redis是内存型数据库，断电数据会丢失
 3.  selenium操作浏览器时，需要注意浏览器资源释放，防止内存泄漏
 4.  redis持久化：防止数据丢失，以文件形式存储
 5.  Redis是vmware开发的开源免费的**KV型NoSQL缓存产品**
 
-### redis特性
+### 1. redis特性
+
+2.  **redis是c语言编写的**，支持数据持久化，是key-value类型数据库。
+2.  redis支持数据备份，高可用也就是master-slave模式
+3.  性能极高 – Redis能读的速度是110000次/s,写的速度是81000次/s 。
+4.  **原子 – Redis的所有操作都是原子性的**，意思就是要么成功执行要么失败完全不执行。单个操作是原子性的。多个操作也支持事务，即原子性，通过MULTI和EXEC指令包起来。
+
+### 2. 应用场景
 
 1.  Redis 是一个开源（BSD许可）的，内存中的数据结构存储系统，它可以用作**数据库**、**缓存**和**消息中间件**
-2.  **redis是c语言编写的**，支持数据持久化，是key-value类型数据库。
-3.  应用在缓存，队列系统中
-4.  redis支持数据备份，高可用也就是master-slave模式
-
-### 优势
-
-1.  Redis具有很好的性能，可以提供`10万次/秒`的读写
-2.  用作缓存数据库，数据放在内存中
-3.  替代某些场景下的mysql，如社交类app
-4.  大型系统中，可以存储session信息，购物车订单
+2.  替代某些场景下的mysql，如社交类app
+3.  大型系统中，可以存储session信息，购物车订单
 
 ## 2. redis安装
 
@@ -146,10 +144,16 @@ OK
 ```shell
 keys *
 type key						# 查看key对应的value类型
+
 expire queue seconds			# 设置过期剩余时间
-eg. expire test 10				# 10s 后过期
 ttl queue						# 查看剩余时间
 persist	queue					# 取消queue的过期时间
+
+dump key						# 序列化 key
+randomkey						# 随机返回一个 key
+move key db						# 移动 key 到指定db
+rename key newkey				# 重命名 key
+
 exists key						# 判断key是否存在
 del key							# 删除key，可以删除多个
 dbsize 							# 当前库key的数量
@@ -166,13 +170,15 @@ flushall						# 清空所有数据库的所有 key
     4.  集合（sets）
     5.  有序集合（sorted sets）
 
-#### 1. 字符串(strings)(10)
+#### 1. 字符串(string)(10)
+
+-   string 类型的值最大能存储 512MB。
 
 -   set系列：set、mset、getset（3）
 -   get系列：get、mget、getrange（3）
 -   len系列：strlen（1）
 -   -+系列：incr、decr（2）
--   其他：exists（1）
+-   append：追加拼接到 value 中
 
 ```shell
 # string 类型，通过set命令设置
@@ -196,7 +202,9 @@ incr 'prize'
 # 自减1
 decr 'prize'
 ```
-#### 2. 散列(hashes)(11)
+#### 2. 散列(hashe)(11)
+
+-   hash 是一个 string 类型的 field 和 value 的映射表，hash 特别适合用于**存储对象**。每个 hash 可以存储 2^32^ -1 键值对（40多亿）
 
 -   set系列：hset、hmset、hsetnx（3）
 -   get系列：hget、hmget（2）
@@ -234,7 +242,9 @@ hgetall key
 hlen key
 ```
 
-#### 3. 列表(lists)(13)
+#### 3. 列表(list)(13)
+
+-   列表最多可存储 2^32^ - 1 元素 (42 9496 7295, 每个列表可存储40多亿)。
 
 -   push系列：lpush、rpush、lpushx、rpushx（4）
 -   pop系列：lpop、rpop、blpop、brpop（4）
@@ -264,18 +274,19 @@ blpop/brpop key1 [key2 ] timeout
 llen key
 # 对一个列表进行修剪(trim)，就是说，让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除
 ltrim key start stop 						
-# key 存在不处理，不存在添加
+# 将值插入到已存在的 列表 中
 lpushx/rpushx key 
 ```
 
-#### 4. 集合(sets)(7)
+#### 4. 集合(set)(8)
+
+-   Redis 的 Set 是 string 类型的无序集合。集合是通过哈希表实现的，所以添加，删除，查找的复杂度都是 `O(1)`。
 
 -   add系列：sadd（1）
 -   查看：smembers（1）
 -   删除：srem（1）
--   成员：sismember（1）
+-   成员：sismember、scard（2）
 -   交并集：sdiff、sinter、sunion（3）
-
 -   redis的集合，是一种无序的集合，集合中的元素没有先后顺序。
 
 ```shell
@@ -295,6 +306,26 @@ sdiff url url2
 sinter url url2
 # 返回集合的并集
 sunion url url2
+
+# 获取成员个数
+scard key 
+```
+
+#### 5. 有序集合zset(sorted set)
+
+-   和 set 一样也是string类型元素的集合，且不允许重复的成员。不同的是每个元素都会关联一个double类型的分数。redis正是通过分数来为集合中的成员进行从小到大的排序。zset的成员是唯一的,但分数(score)却可以重复。
+
+```shell
+# 向有序集合添加一个或多个成员，或者更新已存在成员的分数
+zadd key score1 member1 [score2 member2] 
+# 获取成员个数
+zcard key 
+# 查看成员，闭区间 []
+zrange key start end
+# 返回指定成员索引
+zrank key member
+# 删除一个或多个成员
+zrem key member1 member2...
 ```
 
 ## 4. redis发布订阅
@@ -759,6 +790,30 @@ set name 'xiake'
 
 -   **解决方法**：是删除生成的配置文件`nodes.conf`，如果不行则说明现在创建的结点包括了旧集群的结点信息，需要删除redis的持久化文件后再重启redis，比如：`appendonly.aof、dump.rdb`
 
+## 8. redis的过期策略
+
+### 1. 定期删除
+
+-   redis默认是每隔 100ms 就**随机抽取**一些设置了过期时间的key，检查其是否过期，如果过期就删除。注意这里是随机抽取的。为什么要随机呢？你想一想假如 redis 存了几十万个 key ，每隔100ms就遍历所有的设置过期时间的 key 的话，就会给 CPU 带来很大的负载！
+
+### 2. 惰性删除
+
+-   定期删除可能会导致很多过期 key 到了时间并没有被删除掉。所以就有了惰性删除。假如你的过期 key，靠定期删除没有被删除掉，还停留在内存里，除非你的系统去查一下那个 key，才会被redis给删除掉。这就是所谓的惰性删除，也是够懒的哈！
+
+### 3. redis 提供 6种数据淘汰策略：
+
+1.  volatile-lru：从已**设置过期时间**的数据集（server.db[i].expires）中挑选最近最少使用的数据淘汰
+2.  volatile-ttl：从**已设置过期时间**的数据集（server.db[i].expires）中挑选将要过期的数据淘汰
+3.  volatile-random：从**已设置过期时间**的数据集（server.db[i].expires）中任意选择数据淘汰
+4.  allkeys-lru：当内存不足以容纳新写入数据时，在键空间中，移除`最近最少使用`的key（**这个是最常用的**）
+5.  allkeys-random：从数据集（server.db[i].dict）中`任意选择数据淘汰`
+6.  no-eviction：`禁止驱逐数据`，也就是说当内存不足以容纳新写入数据时，新写入操作会报错。这个应该没人使用吧
+
+### 4. 4.0版本后增加以下两种：
+
+1. volatile-lfu：从已设置过期时间的数据集(server.db[i].expires)中挑选最不经常使用的数据淘汰
+2. allkeys-lfu：当内存不足以容纳新写入数据时，在键空间中，移除最不经常使用的key
+
 # python操作redis
 
 ## 1. 安装
@@ -773,7 +828,7 @@ brew install redis
 ## 2. 使用
 
 1.  redis使用 key:value 方式存储，**哈希存储结构{key:value}**
-2.  多次设置同一个key 会被覆盖
+2.  **多次设置同一个key 会被覆盖**
 
 ```python
 # 终端
@@ -782,8 +837,8 @@ redis-cli
 select 8					# 切换 8 号库，默认 0 号库
 set key value				# 设置一个健值对，哈希存储结构{key:value}
 keys pattern				# 查询当前数据库中所有的key,如keys * 查询当前数据库中所有key
-		 a*					# 查询以 a开头
-  	 *n*					# 包含 n
+keys a*						# 查询以 a开头
+keys *n*					# 包含 n
 ...
 get key						# 查询 key 对应的 value
 ```

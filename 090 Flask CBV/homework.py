@@ -21,6 +21,7 @@ app.register_blueprint(log)
 # app.register_blueprint(info)
 Session(app)
 
+app.session_interface
 
 @app.before_request
 def auth():
