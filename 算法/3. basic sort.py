@@ -18,8 +18,7 @@ li = [i for i in range(20, 0, -1)]
 查看要排序的数列
 """
 # li = [i for i in range(20)]
-print(li)
-
+# print(li)
 
 """
 # way1
@@ -33,7 +32,6 @@ while i < len(li):
 
 print(li)
 """
-
 
 """
 # way2:improve
@@ -72,30 +70,31 @@ print(li)
 """
 冒泡排序
 """
-# class Bubble(object):
-#
-#     def __call__(self, *args, **kwargs):
-#         for i in range(len(li)-1):
-#             for i in range(len(li)-1):
-#                 if li[i] > li[i+1]:
-#                     li[i], li[i+1] = li[i+1], li[i]
-#         return li
-#
-#
-# li = Bubble()()
-# print(li)
 
+
+class Bubble(object):
+
+    def __call__(self, *args, **kwargs):
+        for i in range(len(li) - 1):
+            for i in range(len(li) - 1):
+                if li[i] > li[i + 1]:
+                    li[i], li[i + 1] = li[i + 1], li[i]
+        print(li)
+
+# li = Bubble()()
 
 """
 冒泡排序改进：提前终止的bubble
 """
 j = len(li) - 1
+
+
 def swap(li):
     i = 1
     global j
     sorted = True
     while i < len(li):
-        if li[i-1] > li[i]:
+        if li[i - 1] > li[i]:
             sorted = False
             li[i - 1], li[i] = li[i], li[i - 1]
         i += 1
@@ -109,10 +108,9 @@ def bubble(li):
         if swap(li):
             break
     print('哈哈，我是j，看我是不是0哦', 'j =', j)
+    print(li)
 
-
-bubble(li)
-print(li)
+# bubble(li)
 
 
 """
@@ -147,18 +145,16 @@ print(li)
 # print(li)
 
 
-
 """
 验证
 """
 flag = '正确'
-for i in range(len(li)-1):
-    if li[i] > li[i+1]:
+for i in range(len(li) - 1):
+    if li[i] > li[i + 1]:
         flag = '错误'
         break
 
-print(flag, li[i])
-
+# print(flag, li[i])
 
 alist = [22, 13, 4, 6, 8, 9, 23, 45, 76, 1]
 
@@ -323,11 +319,11 @@ li = [5, 4, 3, 2, 8, 2]
 def select_sort(li):
     for j in range(len(li) - 1, 0, -1):
         max = 0
-        for i in range(j+1):
+        for i in range(j + 1):
             if li[max] < li[i]:
                 max = i
         li[max], li[j] = li[j], li[max]
     print(li)
 
 
-select_sort(li)
+# select_sort(li)
