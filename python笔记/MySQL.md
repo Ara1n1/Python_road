@@ -1,3 +1,94 @@
+# 数据库的介绍和分类
+
+## 1.1 数据库介绍
+
+-   数据库是按照一定的数据结构存放数据的仓库。
+
+## 1.2 数据库种类
+
+### 1. 关系型数据库
+
+1.  复杂的数据结构 --> 简单的二元关系(即二维表格形式)
+2.  典型的产品：Oracle、Mysql
+3.  特点
+    -   二维表(类似excel)
+    -   使用sql语句进行CURD
+    -   如：oracle和mysql
+
+### 2. 非关系型数据库的分类
+
+-   Not Only SQL
+-   web2.0(用户为主)，动态请求的增多，关系型数据库压力增大
+-   Google：BigTable（未开源）
+-   Amazon：Dynamo（未开源）
+-   Facebook：Cassandra
+-   Apache：HBase
+-   Redis、mongodb
+
+#### 1. 键值存储(Key-Value)
+
+-   典型的产品：Memcached、Redis、MemcacheDB、BerkeleyDB
+
+#### 2. 列存储(Column-oriented)
+
+-   典型的产品：Cassandra(360)、HBase(新浪)
+
+#### 3. 面向文档(Document-Oriented)
+
+-   典型的产品：MongoDB、CouchDB
+
+#### 4. 图形(Graph)
+
+-   典型的产品：Neo4J、InfoGrid
+
+### 3. 常用的关系型数据库
+
+#### 1. Oracle
+
+-   应用范围：传统大企业、大公司、政府、金融、证券等等。
+
+#### 2. MySQL
+
+-   中小型关系型数据库管理系统，开发者为瑞典MySQL AB公司。
+-   广泛应用：大中小型网站中（淘宝）
+-   应用范围：互联网领域、游戏、电商平台等。
+
+#### 3. MariaDB
+
+-   MySQL数据库的一个分支，主要由开源社区维护，采用GPL授权许可。
+
+#### 4. SQL Server
+
+-   微软平台：一般使用windows服务器平台企业
+-   php、java开发一般不用sqlserver
+
+####  5. Access
+
+-   微机数据库
+-   入门级桌面型数据库，性能安全性多很一般
+-   应用范围：中小型应用系统
+-   asp+access系统
+
+#### 6. 其他
+
+-   DB2、PostgreSQL、Informix、Sybase
+
+### 4. 常用的关系型数据库
+
+#### 1. Memcached
+
+-   2003开发完成
+-   纯内存缓存软件
+-   Memcachedb：新浪开发的，Memcached + Berkeley DB
+
+#### 2. Redis
+
+-   数据缓存到内存中，周期性的把更新数据写入磁盘或把修改操作写入追加的记录文件。
+
+#### 3. MongoDB
+
+-   介于关系型数据库和非关系型数据库之间
+
 # 数据库mysql
 
 ## 1.1 数据库
@@ -594,7 +685,7 @@ create table staff(id int primary key auto_increment,
                    post_id int,
                    foreign key(post_id) references dept(pid);
                    
-create table dept(pid int primary key, name char(10) not null nuique);
+create table dept(pid int primary key, name char(10) not null unique);
 ```
 
 - 级联删除和更新
@@ -1775,3 +1866,23 @@ db.close()
     -   char 和 varchar 区别
     -   搜索的时候创建一个唯一索引和只创建普通索引index的区别
         -   唯一索引更快
+
+# MySQL的主从同步
+
+## 1. 主从
+
+-   从库：master info 和 relay_log 两个文件
+-   master info 记录主库数据同步的位置。
+
+
+
+
+
+
+
+
+
+
+
+
+

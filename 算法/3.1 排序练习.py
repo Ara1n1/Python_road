@@ -80,7 +80,7 @@ def merge(a, b):
             c.append(b[h])
             h += 1
 
-    c.extend(b[h:]) if j == len(a) else c.extend(a[:j])
+    c.extend(b[h:]) if j == len(a) else c.extend(a[j:])
     return c
 
 

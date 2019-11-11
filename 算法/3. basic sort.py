@@ -81,6 +81,7 @@ class Bubble(object):
                     li[i], li[i + 1] = li[i + 1], li[i]
         print(li)
 
+
 # li = Bubble()()
 
 """
@@ -109,6 +110,7 @@ def bubble(li):
             break
     print('哈哈，我是j，看我是不是0哦', 'j =', j)
     print(li)
+
 
 # bubble(li)
 
@@ -161,8 +163,9 @@ alist = [22, 13, 4, 6, 8, 9, 23, 45, 76, 1]
 """冒泡排序"""
 
 
+
 def bubble(alist):
-    for j in range(len(alist) - 1):
+    for j in range(len(alist) - 1,):
         for i in range(1, len(alist) - j):
             if alist[i - 1] > alist[i]:
                 alist[i - 1], alist[i] = alist[i], alist[i - 1]
@@ -203,13 +206,13 @@ def insert(alist):
             i += 1
         else:
             k = i
-            while k > 1 and alist[k - 1] > alist[k]:
+            while k > 0 and alist[k - 1] > alist[k]:
                 alist[k - 1], alist[k] = alist[k], alist[k - 1]
                 k -= 1
     print(alist)
 
 
-# insert(alist)
+insert(alist)
 
 
 # 最终代码
@@ -324,6 +327,5 @@ def select_sort(li):
                 max = i
         li[max], li[j] = li[j], li[max]
     print(li)
-
 
 # select_sort(li)

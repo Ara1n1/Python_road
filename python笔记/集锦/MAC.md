@@ -321,3 +321,26 @@ d、cd ~/Library/Caches/
 		rm -rf PyCharm2018.3/
 ```
 
+## 9. 缩小图标
+
+```python
+# 默认是一行是 7 个，可以改成 8 或 9
+defaults write com.apple.dock springboard-columns -int 9
+# 重启生效
+defaults write com.apple.dock ResetLaunchPad -bool TRUE;killall Dock
+```
+
+## 10. 卸载内置应用
+
+```python
+# 重启按住。command + r
+# 选择实用工具 --> 终端
+csrutil disable 								# 关闭系统保护
+ls /Volumes/									# 查看磁盘
+cd /Volumes/Macintosh HD/System/Applications	# 进入应用目录
+rm -rf TV.app									# 删除应用
+...
+csrutil enable
+reboot
+```
+

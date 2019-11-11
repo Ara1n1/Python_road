@@ -3014,7 +3014,7 @@ SELINUX = disabled/endforcing
 # 传送文件
 scp filename  henry@ip:/Users/henry/
 # 下载
-scp henry@ip:/tep/test.txt /tmp
+scp henry@ip:/tmp/test.txt /tmp
 ```
 
 -   优点：可以自定义功能
