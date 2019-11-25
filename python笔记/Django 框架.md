@@ -3778,23 +3778,23 @@ print(data)
 <input type='file' id='f1'>
 <button id='b1'>上传</button>
 $('#b1').click(function(){
-  var form_data = new FormData();
-  // 只有dom对象有file属性
-  form_data.append('file', document.getElementById('f1').files[0]);
-  // 先把jquery对象转为，js对象
-  //  form.append('file', $('#f1')[0].files[0]
+    var form_data = new FormData();
+    // 只有dom对象有file属性
+    form_data.append('file', document.getElementById('f1').files[0]);
+    // 先把jquery对象转为，js对象
+    //  form.append('file', $('#f1')[0].files[0]
   
   $.ajax({
-    url:'/uplaod/',
-    type:'post',
-    data:form_data,
-    // 按照enctype='mulipart/form-data',如果不写content-type=form表单的第一格式提交
-    processData:false,
-    // 不让浏览器处理请求头，如果不写默认true，即content-type=true
-    contentType:false,
-    success:function(res){
-      console.log(res)
-    }
+      url:'/uplaod/',
+      type:'post',
+      data:form_data,
+      // 按照enctype='mulipart/form-data',如果不写content-type=form表单的第一格式提交
+      processData:false,
+      // 不让浏览器处理请求头，如果不写默认true，即content-type=true
+      contentType:false,
+      success:function(res){
+          console.log(res)
+      }
   });
 })
 ```
@@ -4289,17 +4289,17 @@ def checkname(value):
     if 'o' in value:
         rasie ValidationError('用户名不合法')
     
-    class RegForm(forms.Form):
-        username = forms.CharField(
-            min_length=6,
-            # 给username字段设置默认值
-            label = '用户名',
-            initial = 'henry',
-            validators = [checkname,...]
-        )
-        pwd = forms.CharField(
-            widget = forms.widgets.PasswordInput(),
-        )
+class RegForm(forms.Form):
+	username = forms.CharField(
+	min_length=6,
+	# 给username字段设置默认值
+	label = '用户名',
+	initial = 'henry',
+	validators = [checkname,...]
+	)
+	pwd = forms.CharField(
+		widget = forms.widgets.PasswordInput(),
+	)
 ```
 
 #### 3.3 钩子
@@ -4820,6 +4820,7 @@ MIDDLEWARE = [
 ### 3. 缓存使用redis
 
 ```python
+# 使用 redis 做缓存
 pip install django-redis
 ```
 
@@ -4849,7 +4850,7 @@ SESSION_ENGINE = 'redis_sessions.session'
 SESSION_REDIS_HOST = 'localhost'
 SESSION_REDIS_PORT = 6379
 SESSION_REDIS_DB = 0
-SESSION_REDIS_PASSWORD = 'sunck'    						# password可自定义
+SESSION_REDIS_PASSWORD = 'xxxx'    							# password可自定义
 SESSION_REDIS_PREFIX = 'session
 ```
 
@@ -4857,42 +4858,47 @@ SESSION_REDIS_PREFIX = 'session
 
 ### 1. 内置信号
 
+#### 1. 请求相关
+
 ```python
-# 请求结束后，自动触发
-from django.core.signals import request_finished
-# 请求到来前，自动触发
-from django.core.signals import request_started
+# 请求结束，自动触发
+1. from django.core.signals import request_finished
+# 请求到来，自动触发
+2. from django.core.signals import request_started
 # 请求异常后，自动触发
-from django.core.signals import got_request_exception
+3. from django.core.signals import got_request_exception
+```
 
+#### 2. models 相关
+
+```python
 # 程序启动时，检测已注册的app中 model 类，对于每一个类，自动触发
-from django.db.models.signals import class_prepared 
-
+1. from django.db.models.signals import class_prepared 
 # pre_init，django的 model 执行其构造方法前，自动触发
 # post_init，django的 model 执行其构造方法后，自动触发
-from django.db.models.signals import pre_init, post_init
-
+2. from django.db.models.signals import pre_init, post_init
 # pre_save，django的 model对象保存前，自动触发
 # post_save，django的 model 对象保存后，自动触发
-from django.db.models.signals import pre_save, post_save
-
+3. from django.db.models.signals import pre_save, post_save
 # pre_delete，django的 model 对象删除前，自动触发
 # post_delete，django的 model 对象删除后，自动触发  
-from django.db.models.signals import pre_delete, post_delete
-
-# django的modal中使用m2m字段操作第三张表（add,remove,clear）前后，自动触发
-from django.db.models.signals import m2m_changed
-
+4. from django.db.models.signals import pre_delete, post_delete
+# django 的 modal 中使用 m2m 字段操作第三张表（add,remove,clear）前后，自动触发
+5. from django.db.models.signals import m2m_changed
 # pre_migrate，执行 migrate 命令前，自动触发
 # post_migrate，执行m igrate 命令后，自动触发
-from django.db.models.signals import pre_migrate, post_migrate
+6. from django.db.models.signals import pre_migrate, post_migrate
+```
 
+#### 3. 其他
+
+```python
 # 使用test测试修改配置文件时，自动触发
-from django.test.signals import setting_changed
+1. from django.test.signals import setting_changed
 # 使用test测试渲染模板时，自动触发	
-from django.test.signals import template_rendered
+2. from django.test.signals import template_rendered
 # 创建数据库连接时，自动触发
-from django.db.backends.signals import connection_created
+3. from django.db.backends.signals import connection_created
 ```
 
 -   **注册信号**

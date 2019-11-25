@@ -7,7 +7,7 @@ from settings import mongo
 
 
 @app.route('/login', methods=['get', 'post'])
-def lgoin():
+def login():
     if request.method == 'GET':
         return render_template('login.html')
     else:
@@ -53,3 +53,5 @@ def upload():
 
 if __name__ == '__main__':
     app.run('0.0.0.0', 9527)
+    app.__call__()
+    request

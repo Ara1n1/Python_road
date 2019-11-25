@@ -3084,7 +3084,7 @@ virtualenv --no-site-packages --python=python3   虚拟环境名称
 python3 -m venv 路径如:django
 # 激活进入虚拟环境
 source django/bin/active
-pip3 install django==1.11 -i e
+pip3 install django==1.11
 # 退出
 deactivate
 ```
